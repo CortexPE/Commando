@@ -38,7 +38,7 @@ abstract class BaseArgument {
 	/** @var bool */
 	protected $optional = false;
 
-	public function __construct(string $name, bool $optional) {
+	public function __construct(string $name, bool $optional = false) {
 		$this->name = $name;
 		$this->optional = $optional;
 	}
