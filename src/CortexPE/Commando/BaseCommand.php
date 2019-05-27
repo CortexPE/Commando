@@ -98,6 +98,7 @@ abstract class BaseCommand extends Command implements IArgumentable {
 			if(isset($this->subCommands[($label = $args[0])])) {
 				array_shift($args);
 				$cmd = $this->subCommands[$label];
+				$cmd->setCurrentSender($sender);
 				if(!$cmd->testPermissionSilent($sender)) {
 					$msg = $this->getPermissionMessage();
 					if($msg === null) {

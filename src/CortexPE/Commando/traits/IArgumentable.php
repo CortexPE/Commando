@@ -31,6 +31,7 @@ namespace CortexPE\Commando\traits;
 
 
 use CortexPE\Commando\args\BaseArgument;
+use pocketmine\command\CommandSender;
 
 interface IArgumentable {
 	public function generateUsageMessage(): string;

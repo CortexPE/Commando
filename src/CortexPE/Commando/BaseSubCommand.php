@@ -30,10 +30,10 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
-use CortexPE\Commando\traits\IArgumentable;
 use CortexPE\Commando\traits\ArgumentableTrait;
-use function explode;
+use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\CommandSender;
+use function explode;
 
 abstract class BaseSubCommand implements IArgumentable {
 	use ArgumentableTrait;
@@ -47,6 +47,8 @@ abstract class BaseSubCommand implements IArgumentable {
 	protected $usageMessage;
 	/** @var string|null */
 	private $permission = null;
+	/** @var CommandSender */
+	protected $currentSender;
 
 	public function __construct(string $name, string $description = "", array $aliases = []) {
 		$this->name = $name;
@@ -123,15 +125,25 @@ abstract class BaseSubCommand implements IArgumentable {
 		$this->permission = $permission;
 	}
 
-	public function testPermissionSilent(CommandSender $sender):bool {
-		if(empty($this->permission)){
+	public function testPermissionSilent(CommandSender $sender): bool {
+		if(empty($this->permission)) {
 			return true;
 		}
-		foreach(explode(";", $this->permission) as $permission){
-			if($sender->hasPermission($permission)){
+		foreach(explode(";", $this->permission) as $permission) {
+			if($sender->hasPermission($permission)) {
 				return true;
 			}
 		}
+
 		return false;
+	}
+
+	/**
+	 * @param CommandSender $currentSender
+	 *
+	 * @internal Used to pass the current sender from the parent command
+	 */
+	public function setCurrentSender(CommandSender $currentSender): void {
+		$this->currentSender = $currentSender;
 	}
 }
