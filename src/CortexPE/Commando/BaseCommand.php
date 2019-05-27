@@ -178,10 +178,12 @@ abstract class BaseCommand extends Command implements IArgumentable {
 		array_unshift($keys, $subCommand->getName());
 		$keys = array_unique($keys);
 		foreach($keys as $key) {
-			if(!isset($this->subCommands[$key])) {
-				$this->subCommands[$key] = $subCommand;
-			} else {
-				throw new SubCommandCollision("SubCommand with same name / alias for '{$key}' already exists");
+			if(!empty($key) {
+				if(!isset($this->subCommands[$key])) {
+					$this->subCommands[$key] = $subCommand;
+				} else {
+					throw new SubCommandCollision("SubCommand with same name / alias for '{$key}' already exists");
+				}
 			}
 		}
 	}
