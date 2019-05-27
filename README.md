@@ -99,4 +99,4 @@ The error messages are sent in bulk to the users to let them know what parts are
 *A current limitation is that, you cannot register your own error messages with other error codes.*
 
 -----
-**This API was made with :heart: by CortexPE, Enjoy!~ :3**
+**This framework was made with :heart: by CortexPE, Enjoy!~ :3**
