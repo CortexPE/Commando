@@ -58,6 +58,12 @@ trait ArgumentableTrait {
 	 * @throws ArgumentOrderException
 	 */
 	public function registerArgument(int $position, BaseArgument $argument): void {
+		if($position < 0){
+			throw new ArgumentOrderException("You cannot register arguments at negative positions");
+		}
+		if($position > 0 && !isset($this->argumentList[$position - 1])){
+			throw new ArgumentOrderException("There were no arguments before $position");
+		}
 		foreach($this->argumentList[$position - 1] ?? [] as $arg){
 			if($arg instanceof TextArgument){
 				throw new ArgumentOrderException("No other arguments can be registered after a TextArgument");
