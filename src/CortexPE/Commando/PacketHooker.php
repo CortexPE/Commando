@@ -30,7 +30,6 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
-use CortexPE\Commando\args\BaseArgument;
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\CommandMap;
@@ -38,12 +37,13 @@ use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
-use pocketmine\network\mcpe\protocol\types\CommandData;
+use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use function array_unique;
-use function ksort;
+use function array_unshift;
+use function array_values;
 
 class PacketHooker implements Listener {
 	/** @var bool */
@@ -79,86 +79,71 @@ class PacketHooker implements Listener {
 			foreach($pk->commandData as $commandName => $commandData) {
 				$cmd = $this->map->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
-					$data = clone $commandData;
-					$overloadIndex = 0;
-					self::indexArgumentable($cmd, $p, $overloadIndex, $data);
-					//var_dump($data->overloads);
-					$pk->commandData[$commandName] = $data;
+					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
 				}
 			}
 		}
 	}
 
 	/**
-	 * @param BaseArgument|BaseSubCommand $cmdParam
+	 * @param CommandSender $cs
+	 * @param BaseCommand $command
 	 *
-	 * @return CommandParameter
+	 * @return CommandParameter[][]
 	 */
-	private static function generateParameter($cmdParam): CommandParameter {
-		$param = new CommandParameter();
-		$param->paramName = $cmdParam->getName();
-		$param->paramType = AvailableCommandsPacket::ARG_FLAG_VALID;
-		if($cmdParam instanceof BaseArgument) {
-			$param->paramType |= $cmdParam->getNetworkType();
-			$param->isOptional = $cmdParam->isOptional();
-		} elseif($cmdParam instanceof BaseSubCommand) {
-			$param->paramType |= AvailableCommandsPacket::ARG_TYPE_STRING; // this'll do for now
+	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
+		$overloads = [];
 
-			// sub-commands are always optional, as the developer might implement help messages or other arguments
-			// on it's parent's (BaseCommand) onRun
-			$param->isOptional = true;
+		$scEnum = new CommandEnum();
+		$scEnum->enumName = $command->getName() . "SubCommands";
+
+		/** @var BaseSubCommand[] $subCommands */
+		$subCommands = array_values(array_unique($command->getSubCommands(), SORT_REGULAR));
+		foreach($subCommands as $sI => $subCommand) {
+			if(!$subCommand->testPermissionSilent($cs)){
+				continue;
+			}
+			$scParam = new CommandParameter();
+			$scParam->paramName = $subCommand->getName();
+			$scParam->isOptional = true;
+			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_TYPE_STRING;
+
+			// it looks uglier imho
+			//$scParam->enum = $scEnum;
+
+			$scEnum->enumValues[] = $subCommand->getName();
+
+			$overloadList = self::generateOverloadList($subCommand);
+			if(!empty($overloadList)){
+				foreach($overloadList as $overload) {
+					array_unshift($overload, $scParam);
+					$overloads[] = $overload;
+				}
+			} else {
+				$overloads[] = [$scParam];
+			}
 		}
 
-		// todo: "postfix"? wtf mojang
-		// todo: "enums"? & sub-command aliases
-		return $param;
+		foreach(self::generateOverloadList($command) as $overload) {
+			$overloads[] = $overload;
+		}
+
+		return $overloads;
 	}
 
-	private static function generateParameters(IArgumentable $argumentable): array {
-		/** @var CommandParameter[] $parameters */
-		$parameters = [];
-		foreach($argumentable->getArgumentList() as $pos => $arguments) {
-			foreach($arguments as $key => $argument) {
-				$parameters[] = $param = self::generateParameter($argument);
-			}
-		}
-		if($argumentable instanceof BaseCommand) {
-			$subCommands = array_unique($argumentable->getSubCommands(), SORT_REGULAR);
-			/** @var BaseSubCommand $subCommand */
-			foreach($subCommands as $subCommand) {
-				$parameters[] = $param = self::generateParameter($subCommand);
+	/**
+	 * @param IArgumentable $argumentable
+	 *
+	 * @return CommandParameter[][]
+	 */
+	private static function generateOverloadList(IArgumentable $argumentable): array {
+		$params = [];
+		foreach($argumentable->getArgumentList() as $pos => $converters) {
+			foreach($converters as $i => $argument) {
+				$params[$i][$pos] = $argument->getNetworkParameterData();
 			}
 		}
 
-		return $parameters;
-	}
-
-	private static function indexArgumentable(
-		IArgumentable $argumentable,
-		CommandSender $sender,
-		int &$overloadOffset,
-		CommandData &$commandData,
-		int $posOffset = 0
-	): void {
-		$params = self::generateParameters($argumentable);
-		foreach($params as $param) {
-			$commandData->overloads[$overloadOffset][$posOffset] = $param;
-			if($argumentable instanceof BaseSubCommand) {
-				// show what our overload came from
-				$commandData->overloads[$overloadOffset][0] = self::generateParameter($argumentable);
-			}
-			$overloadOffset++;
-		}
-		foreach($commandData->overloads as $overloadIndex => $parameters) {
-			$arr = $parameters;
-			ksort($arr);
-			$commandData->overloads[$overloadIndex] = $arr;
-		}
-		if($argumentable instanceof BaseCommand) {
-			$subCommands = array_unique($argumentable->getSubCommands(), SORT_REGULAR);
-			foreach($subCommands as $subCommand) {
-				self::indexArgumentable($subCommand, $sender, $overloadOffset, $commandData, 1);
-			}
-		}
+		return $params;
 	}
 }

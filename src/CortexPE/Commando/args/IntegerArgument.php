@@ -40,7 +40,7 @@ class IntegerArgument extends BaseArgument {
 	}
 
 	public function getTypeName(): string {
-		return "integer";
+		return "int";
 	}
 
 	public function canParse(string $testString, CommandSender $sender): bool {
