@@ -41,11 +41,11 @@ class RawStringArgument extends BaseArgument {
 		return "string";
 	}
 
-	public function canParse(string $testString): bool {
+	public function canParse(string $testString, CommandSender $sender): bool {
 		return true;
 	}
 
-	public function parse(string $argument) {
+	public function parse(string $argument, CommandSender $sender) {
 		return $argument;
 	}
 }
