@@ -33,7 +33,7 @@ namespace CortexPE\Commando\args;
 use pocketmine\command\CommandSender;
 
 class BooleanArgument extends StringEnumArgument {
-	protected const VALID = [
+	protected const VALUES = [
 		"true" => true,
 		"false" => false,
 	];
