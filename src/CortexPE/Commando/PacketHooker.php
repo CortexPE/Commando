@@ -31,6 +31,7 @@ namespace CortexPE\Commando;
 
 
 use CortexPE\Commando\exception\HookAlreadyRegistered;
+use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\CommandMap;
 use pocketmine\command\CommandSender;
@@ -82,6 +83,7 @@ class PacketHooker implements Listener {
 					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
 				}
 			}
+			$pk->softEnums = SoftEnumStore::getEnums();
 		}
 	}
 

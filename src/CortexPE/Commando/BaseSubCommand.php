@@ -49,6 +49,8 @@ abstract class BaseSubCommand implements IArgumentable {
 	private $permission = null;
 	/** @var CommandSender */
 	protected $currentSender;
+	/** @var BaseCommand */
+	protected $parent;
 
 	public function __construct(string $name, string $description = "", array $aliases = []) {
 		$this->name = $name;
@@ -145,5 +147,18 @@ abstract class BaseSubCommand implements IArgumentable {
 	 */
 	public function setCurrentSender(CommandSender $currentSender): void {
 		$this->currentSender = $currentSender;
+	}
+
+	/**
+	 * @param BaseCommand $parent
+	 *
+	 * @internal Used to pass the parent context from the parent command
+	 */
+	public function setParent(BaseCommand $parent): void {
+		$this->parent = $parent;
+	}
+
+	public function sendError(int $errorCode, array $args = []): void {
+		$this->parent->sendError($errorCode, $args);
 	}
 }

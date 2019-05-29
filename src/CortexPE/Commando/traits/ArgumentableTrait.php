@@ -100,23 +100,31 @@ trait ArgumentableTrait {
 					return $a->getSpanLength();
 				});
 				$parsed = false;
+				$optional = false;
 				foreach($possibleArguments as $argument) {
 					$slices = array_slice($rawArgs, $offset, ($len = $argument->getSpanLength()));
-					if($argument->canParse(($arg = implode(" ", $slices)), $sender)) {
+					$arg = implode(" ", $slices);
+					if($argument->isOptional()) {
+						$optional = true;
+					}
+					if($argument->canParse($arg, $sender)) {
 						$return["arguments"][$argument->getName()] = (clone $argument)->parse($arg, $sender);
-						if(!$argument->isOptional()) {
+						if(!$optional) {
 							$required--;
 						}
 						$parsed = true;
 						$offset += $len;
 						break;
 					}
+					if($offset >= count($rawArgs) - 1){
+						break; // we've reached the end of the argument list the user passed
+					}
 				}
-				if(!$parsed) { // we tried every other possible argument type, none was satisfied
+				if(!$parsed && !($optional && empty($arg))) { // we tried every other possible argument type, none was satisfied
 					$return["errors"][] = [
 						"code" => BaseCommand::ERR_INVALID_ARG_VALUE,
 						"data" => [
-							"value" => $rawArgs[$offset],
+							"value" => $rawArgs[$offset] ?? "",
 							"position" => $pos + 1
 						]
 					];

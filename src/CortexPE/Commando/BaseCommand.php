@@ -152,7 +152,7 @@ abstract class BaseCommand extends Command implements IArgumentable {
 		$this->currentSender->sendMessage("Usage: " . $this->getUsage());
 	}
 
-	protected function sendError(int $errorCode, array $args = []): void {
+	public function sendError(int $errorCode, array $args = []): void {
 		$str = $this->errorMessages[$errorCode];
 		foreach($args as $item => $value) {
 			$str = str_replace("{{$item}}", $value, $str);
@@ -178,12 +178,11 @@ abstract class BaseCommand extends Command implements IArgumentable {
 		array_unshift($keys, $subCommand->getName());
 		$keys = array_unique($keys);
 		foreach($keys as $key) {
-			if(!empty($key)) {
-				if(!isset($this->subCommands[$key])) {
-					$this->subCommands[$key] = $subCommand;
-				} else {
-					throw new SubCommandCollision("SubCommand with same name / alias for '{$key}' already exists");
-				}
+			if(!isset($this->subCommands[$key])) {
+				$subCommand->setParent($this);
+				$this->subCommands[$key] = $subCommand;
+			} else {
+				throw new SubCommandCollision("SubCommand with same name / alias for '{$key}' already exists");
 			}
 		}
 	}
