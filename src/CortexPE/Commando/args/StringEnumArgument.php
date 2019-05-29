@@ -31,18 +31,34 @@ namespace CortexPE\Commando\args;
 
 
 use pocketmine\command\CommandSender;
+use pocketmine\network\mcpe\protocol\types\CommandEnum;
+use function array_keys;
+use function implode;
+use function preg_match;
+use function spl_object_hash;
+use function strtolower;
 
-class BooleanArgument extends StringEnumArgument {
-	protected const VALID = [
-		"true" => true,
-		"false" => false,
-	];
+abstract class StringEnumArgument extends BaseArgument {
+	protected const VALUES = [];
 
-	public function getTypeName(): string {
-		return "bool";
+	public function __construct(string $name, bool $optional = false) {
+		parent::__construct($name, $optional);
+
+		$this->parameterData->enum = new CommandEnum();
+		$this->parameterData->enum->enumName = "stringEnum#" . spl_object_hash($this);
+		$this->parameterData->enum->enumValues = array_keys(static::VALUES);
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
-		return $this->getValue($argument);
+	public function getNetworkType(): int {
+		// this will be disregarded by PM anyways because this will be considered as a string enum
+		return -1;
+	}
+
+	public function canParse(string $testString, CommandSender $sender): bool {
+		return (bool)preg_match("/.*?(" . implode("|", array_keys(static::VALUES)) . ").*?/iu", $testString);
+	}
+
+	public function getValue(string $string){
+		return static::VALUES[strtolower($string)];
 	}
 }
