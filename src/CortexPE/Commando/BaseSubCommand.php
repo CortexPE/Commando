@@ -161,4 +161,8 @@ abstract class BaseSubCommand implements IArgumentable {
 	public function sendError(int $errorCode, array $args = []): void {
 		$this->parent->sendError($errorCode, $args);
 	}
+
+	public function sendUsage():void {
+		$this->currentSender->sendMessage("/{$this->parent->getName()} {$this->usageMessage}");
+	}
 }
