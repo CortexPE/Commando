@@ -33,9 +33,8 @@ namespace CortexPE\Commando;
 use CortexPE\Commando\args\BaseArgument;
 use CortexPE\Commando\exception\InvalidErrorCode;
 use CortexPE\Commando\exception\SubCommandCollision;
-use CortexPE\Commando\traits\IArgumentable;
 use CortexPE\Commando\traits\ArgumentableTrait;
-use function implode;
+use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
@@ -44,6 +43,7 @@ use function array_unique;
 use function array_unshift;
 use function count;
 use function dechex;
+use function implode;
 use function str_replace;
 
 abstract class BaseCommand extends Command implements IArgumentable {
@@ -78,11 +78,10 @@ abstract class BaseCommand extends Command implements IArgumentable {
 		$this->prepare();
 
 		$usages = ["/" . $this->generateUsageMessage()];
-		$subCommands = array_unique($this->subCommands, SORT_REGULAR);
-		/** @var BaseSubCommand $subCommand */
-		foreach($subCommands as $subCommand){
-			$usages[] = $subCommand->generateUsageMessage();
+		foreach($this->subCommands as $subCommand) {
+			$usages[] = $subCommand->getUsageMessage();
 		}
+		$usages = array_unique($usages);
 		$this->usageMessage = implode("\n - /" . $this->getName() . " ", $usages);
 	}
 
