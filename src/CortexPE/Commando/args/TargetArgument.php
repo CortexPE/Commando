@@ -32,6 +32,7 @@ namespace CortexPE\Commando\args;
 
 use pocketmine\command\CommandSender;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
+use pocketmine\Player;
 use pocketmine\Server;
 
 class TargetArgument extends BaseArgument {
@@ -44,8 +45,7 @@ class TargetArgument extends BaseArgument {
 	}
 
 	public function canParse(string $testString, CommandSender $sender) : bool {
-		// TODO: Implement canParse() method.
-		return true;
+		return Player::isValidUserName($testString);
 	}
 
 	public function parse(string $argument, CommandSender $sender) {
