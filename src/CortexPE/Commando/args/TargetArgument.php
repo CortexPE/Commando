@@ -50,7 +50,8 @@ class TargetArgument extends BaseArgument {
 
 	public function parse(string $argument, CommandSender $sender) {
 		// TODO: handle @a @e @p @r @s @c @v
-		$player = Server::getInstance()->getPlayer($argument) ?? Server::getInstance()->getOfflinePlayer($argument);
+		$server = Server::getInstance();
+		$player = $server->getPlayer($argument) ?? $server->getOfflinePlayer($argument);
 		return $player->getName();
 	}
 }
