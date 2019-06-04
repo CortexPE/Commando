@@ -33,6 +33,7 @@ namespace CortexPE\Commando\args;
 use pocketmine\command\CommandSender;
 use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use function array_keys;
+use function array_map;
 use function implode;
 use function preg_match;
 use function spl_object_hash;
@@ -45,8 +46,8 @@ abstract class StringEnumArgument extends BaseArgument {
 		parent::__construct($name, $optional);
 
 		$this->parameterData->enum = new CommandEnum();
-		$this->parameterData->enum->enumName = "stringEnum#" . spl_object_hash($this);
-		$this->parameterData->enum->enumValues = array_keys(static::VALUES);
+		$this->parameterData->enum->enumName = $this->getEnumName();
+		$this->parameterData->enum->enumValues = $this->getEnumValues();
 	}
 
 	public function getNetworkType(): int {
@@ -55,10 +56,21 @@ abstract class StringEnumArgument extends BaseArgument {
 	}
 
 	public function canParse(string $testString, CommandSender $sender): bool {
-		return (bool)preg_match("/.*?(" . implode("|", array_keys(static::VALUES)) . ").*?/iu", $testString);
+		return (bool)preg_match(
+			"/.*?(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ").*?/iu",
+			$testString
+		);
 	}
 
-	public function getValue(string $string){
+	public function getValue(string $string) {
 		return static::VALUES[strtolower($string)];
+	}
+
+	public function getEnumName(): string {
+		return "stringEnum#" . spl_object_hash($this);
+	}
+
+	public function getEnumValues(): array {
+		return array_keys(static::VALUES);
 	}
 }
