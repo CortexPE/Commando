@@ -36,6 +36,14 @@ use pocketmine\Player;
 use pocketmine\Server;
 
 class TargetArgument extends BaseArgument {
+	/** @var Server */
+	private $server;
+
+	public function __construct(string $name, bool $optional) {
+		parent::__construct($name, $optional);
+		$this->server = Server::getInstance();
+	}
+
 	public function getNetworkType() : int {
 		return AvailableCommandsPacket::ARG_TYPE_TARGET;
 	}
@@ -50,8 +58,7 @@ class TargetArgument extends BaseArgument {
 
 	public function parse(string $argument, CommandSender $sender) {
 		// TODO: handle @a @e @p @r @s @c @v
-		$server = Server::getInstance();
-		$player = $server->getPlayer($argument) ?? $server->getOfflinePlayer($argument);
+		$player = $this->server->getPlayer($argument) ?? $this->server->getOfflinePlayer($argument);
 		return $player->getName();
 	}
 }
