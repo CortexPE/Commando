@@ -128,6 +128,7 @@ trait ArgumentableTrait {
 							"position" => $pos + 1
 						]
 					];
+					return $return; // let's break it here.
 				}
 			}
 		}
