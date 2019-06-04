@@ -31,10 +31,13 @@ namespace CortexPE\Commando\args;
 
 
 use pocketmine\command\CommandSender;
+use pocketmine\level\Location;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
+use function count;
 use function explode;
 use function preg_match;
+use function substr;
 
 class Vector3Argument extends BaseArgument {
 	public function getNetworkType(): int {
@@ -46,12 +49,50 @@ class Vector3Argument extends BaseArgument {
 	}
 
 	public function canParse(string $testString, CommandSender $sender): bool {
-		// TODO: Selectors
-		return (bool)preg_match("/^(?:-?(?:\d+|\d*\.\d+) ){2}(?:-?(?:\d+|\d*\.\d+))$/", $testString);
+		$coords = explode(" ", $testString);
+		if(count($coords) === 3) {
+			foreach($coords as $coord) {
+				if(!$this->isValidCoordinate($coord, $sender instanceof Location)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public function isValidCoordinate(string $coordinate, bool $locatable): bool {
+		return (bool)preg_match("/^(?:" . ($locatable ? "(?:~-|~\+)?" : "") . "-?(?:\d+|\d*\.\d+))" . ($locatable ? "|~" : "") . "$/", $coordinate);
 	}
 
 	public function parse(string $argument, CommandSender $sender) {
-		return new Vector3(...array_map("\\floatval", explode(" ", $argument)));
+		$coords = explode(" ", $argument);
+		$vals = [];
+		foreach($coords as $k => $coord){
+			$offset = 0;
+			// if it's locatable and starts with ~- or ~+
+			if($sender instanceof Location && preg_match("/^(?:~-|~\+)|~/", $coord)){
+				// this will work with -n, +n and "" due to typecast later
+				$offset = substr($coord, 1);
+
+				// replace base coordinate with actual entity coordinates
+				switch($k){
+					case 0:
+						$coord = $sender->x;
+						break;
+					case 1:
+						$coord = $sender->y;
+						break;
+					case 2:
+						$coord = $sender->z;
+						break;
+				}
+			}
+			$vals[] = (float)$coord + (float)$offset;
+		}
+		return new Vector3(...$vals);
 	}
 
 	public function getSpanLength(): int {
