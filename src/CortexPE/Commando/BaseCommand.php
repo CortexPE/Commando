@@ -55,7 +55,7 @@ abstract class BaseCommand extends Command implements IArgumentable {
 	public const ERR_NO_ARGUMENTS = 0x04;
 
 	/** @var string[] */
-	private $errorMessages = [
+	protected $errorMessages = [
 		self::ERR_INVALID_ARG_VALUE => TextFormat::RED . "Invalid value '{value}' for argument #{position}",
 		self::ERR_TOO_MANY_ARGUMENTS => TextFormat::RED . "Too many arguments given",
 		self::ERR_INSUFFICIENT_ARGUMENTS => TextFormat::RED . "Insufficient number of arguments given",
@@ -63,7 +63,7 @@ abstract class BaseCommand extends Command implements IArgumentable {
 	];
 
 	/** @var CommandSender */
-	private $currentSender;
+	protected $currentSender;
 
 	/** @var BaseSubCommand[] */
 	private $subCommands = [];
