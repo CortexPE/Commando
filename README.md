@@ -58,9 +58,9 @@ use CortexPE\Commando\args\RawStringArgument;
 ### Handling our arguments
 The arguments passed on our `onRun` method will be mapped by `name => value` this makes it easy to understand which argument is which, instead of using numeric indices. It is also guaranteed that the arguments passed will be the declared type that we've set.
 ```php
-	protected function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
+	public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
 		if(isset($args["name"])){
-			$sender->sendMessage("Hello, " . $name . "!");
+			$sender->sendMessage("Hello, " . $args["name"] . "!");
 		} else {
 			$this->sendUsage();
 		}
