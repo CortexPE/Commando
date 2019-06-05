@@ -33,11 +33,11 @@ namespace CortexPE\Commando\traits;
 use CortexPE\Commando\args\BaseArgument;
 use CortexPE\Commando\args\TextArgument;
 use CortexPE\Commando\BaseCommand;
-use function array_slice;
 use CortexPE\Commando\exception\ArgumentOrderException;
+use pocketmine\command\CommandSender;
+use function array_slice;
 use function count;
 use function implode;
-use pocketmine\command\CommandSender;
 use function usort;
 
 trait ArgumentableTrait {

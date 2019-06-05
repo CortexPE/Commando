@@ -30,7 +30,6 @@ declare(strict_types=1);
 namespace CortexPE\Commando\args;
 
 
-use pocketmine\command\CommandSender;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 
 class TextArgument extends RawStringArgument {
