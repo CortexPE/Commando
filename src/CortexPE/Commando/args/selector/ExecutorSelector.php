@@ -31,19 +31,15 @@ namespace CortexPE\Commando\args\selector;
 
 
 use pocketmine\command\CommandSender;
-use function array_merge;
+use pocketmine\level\Position;
+use pocketmine\Player;
 
-class AllEntitiesSelector extends BaseSelector {
+class ExecutorSelector extends BaseSelector {
 	public function getChar(): string {
-		return "e";
+		return "s";
 	}
 
 	public function getTargets(CommandSender $sender, array $args): array {
-		$entities = [];
-		foreach($sender->getServer()->getLevels() as $level) {
-			$entities = array_merge($entities, $level->getEntities());
-		}
-
-		return $entities;
+		return [$sender];
 	}
 }
