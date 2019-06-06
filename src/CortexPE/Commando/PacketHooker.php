@@ -95,7 +95,6 @@ class PacketHooker implements Listener {
 						}
 						$subCommands = array_merge($subCommands, $mySubs);
 					}
-					$pk->commandData[$commandName]->overloads = self::generateOverloadList($cmd);
 				}
 			}
 			foreach($subCommands as $subCommand){
