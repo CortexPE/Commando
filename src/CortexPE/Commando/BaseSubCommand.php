@@ -165,4 +165,11 @@ abstract class BaseSubCommand implements IArgumentable {
 	public function sendUsage():void {
 		$this->currentSender->sendMessage("/{$this->parent->getName()} {$this->usageMessage}");
 	}
+
+	/**
+	 * @return BaseCommand
+	 */
+	public function getParent(): BaseCommand {
+		return $this->parent;
+	}
 }

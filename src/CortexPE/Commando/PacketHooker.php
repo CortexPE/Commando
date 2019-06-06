@@ -30,14 +30,18 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
+use function array_map;
+use function array_merge;
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
+use function in_array;
 use pocketmine\command\CommandMap;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
+use pocketmine\network\mcpe\protocol\types\CommandData;
 use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\plugin\Plugin;
@@ -45,6 +49,7 @@ use pocketmine\Server;
 use function array_unique;
 use function array_unshift;
 use function array_values;
+use function ucfirst;
 
 class PacketHooker implements Listener {
 	/** @var bool */
@@ -77,60 +82,40 @@ class PacketHooker implements Listener {
 		$pk = $ev->getPacket();
 		if($pk instanceof AvailableCommandsPacket) {
 			$p = $ev->getPlayer();
+			/** @var BaseSubCommand[] $subCommands */
+			$subCommands = [];
 			foreach($pk->commandData as $commandName => $commandData) {
 				$cmd = $this->map->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
-					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
+					if(!empty(($mySubs = $cmd->getSubCommands()))){
+						foreach($mySubs as $mySub){
+							if($mySub->testPermissionSilent($p)) {
+								$subCommands[] = $mySub;
+							}
+						}
+						$subCommands = array_merge($subCommands, $mySubs);
+					}
+					$pk->commandData[$commandName]->overloads = self::generateOverloadList($cmd);
 				}
+			}
+			foreach($subCommands as $subCommand){
+				$k = ($parName = $subCommand->getParent()->getName()) . " " . ($scName = $subCommand->getName());
+				$pk->commandData[$k] = $data = new CommandData();
+				$data->commandName = $k;
+				$data->commandDescription = $subCommand->getDescription();
+				$data->flags = $data->permission = 0;
+				if(!empty(($aliases = $subCommand->getAliases()))){
+					array_unshift($aliases, $scName);
+					$data->aliases = new CommandEnum();
+					$data->aliases->enumName = ucfirst($k) . "Aliases";
+					$data->aliases->enumValues = array_map(function(string $alias) use ($parName) :string{
+						return $parName . " " . $alias;
+					}, $aliases);
+				}
+				$data->overloads = self::generateOverloadList($subCommand);
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
 		}
-	}
-
-	/**
-	 * @param CommandSender $cs
-	 * @param BaseCommand $command
-	 *
-	 * @return CommandParameter[][]
-	 */
-	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
-		$overloads = [];
-
-		$scEnum = new CommandEnum();
-		$scEnum->enumName = $command->getName() . "SubCommands";
-
-		/** @var BaseSubCommand[] $subCommands */
-		$subCommands = array_values(array_unique($command->getSubCommands(), SORT_REGULAR));
-		foreach($subCommands as $sI => $subCommand) {
-			if(!$subCommand->testPermissionSilent($cs)){
-				continue;
-			}
-			$scParam = new CommandParameter();
-			$scParam->paramName = $subCommand->getName();
-			$scParam->isOptional = true;
-			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_TYPE_STRING;
-
-			// it looks uglier imho
-			//$scParam->enum = $scEnum;
-
-			$scEnum->enumValues[] = $subCommand->getName();
-
-			$overloadList = self::generateOverloadList($subCommand);
-			if(!empty($overloadList)){
-				foreach($overloadList as $overload) {
-					array_unshift($overload, $scParam);
-					$overloads[] = $overload;
-				}
-			} else {
-				$overloads[] = [$scParam];
-			}
-		}
-
-		foreach(self::generateOverloadList($command) as $overload) {
-			$overloads[] = $overload;
-		}
-
-		return $overloads;
 	}
 
 	/**
