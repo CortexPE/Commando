@@ -32,6 +32,7 @@ namespace CortexPE\Commando;
 
 use function array_map;
 use function array_merge;
+use function array_replace;
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
@@ -82,36 +83,29 @@ class PacketHooker implements Listener {
 		$pk = $ev->getPacket();
 		if($pk instanceof AvailableCommandsPacket) {
 			$p = $ev->getPlayer();
-			/** @var BaseSubCommand[] $subCommands */
-			$subCommands = [];
 			foreach($pk->commandData as $commandName => $commandData) {
 				$cmd = $this->map->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
+					$overloadList = self::generateOverloadList($cmd);
 					if(!empty(($mySubs = $cmd->getSubCommands()))){
-						foreach($mySubs as $mySub){
+						/** @var BaseSubCommand[] $mySubs */
+						$mySubs = array_unique($mySubs, SORT_REGULAR);
+						foreach($mySubs as $label => $mySub){
 							if($mySub->testPermissionSilent($p)) {
-								$subCommands[] = $mySub;
+								$subParam = new CommandParameter();
+								$subParam->paramName = $commandName . $label;
+								$subParam->enum = new CommandEnum();
+								$subParam->enum->enumName = $subParam->paramName . "-enum";
+								$subParam->enum->enumValues = [$label];
+								// bind argument to overload list
+								foreach(self::generateOverloadList($mySub) as $k => $params){
+									$overloadList[] = array_merge([$subParam], $params);
+								}
 							}
 						}
 					}
-					$pk->commandData[$commandName]->overloads = self::generateOverloadList($cmd);
+					$pk->commandData[$commandName]->overloads = $overloadList;
 				}
-			}
-			foreach($subCommands as $subCommand){
-				$k = ($parName = $subCommand->getParent()->getName()) . " " . ($scName = $subCommand->getName());
-				$pk->commandData[$k] = $data = new CommandData();
-				$data->commandName = $k;
-				$data->commandDescription = $subCommand->getDescription();
-				$data->flags = $data->permission = 0;
-				if(!empty(($aliases = $subCommand->getAliases()))){
-					array_unshift($aliases, $scName);
-					$data->aliases = new CommandEnum();
-					$data->aliases->enumName = ucfirst($k) . "Aliases";
-					$data->aliases->enumValues = array_map(function(string $alias) use ($parName) :string{
-						return $parName . " " . $alias;
-					}, $aliases);
-				}
-				$data->overloads = self::generateOverloadList($subCommand);
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
 		}
@@ -123,13 +117,21 @@ class PacketHooker implements Listener {
 	 * @return CommandParameter[][]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
-		$params = [];
+		$overloads = [];
 		foreach($argumentable->getArgumentList() as $pos => $converters) {
 			foreach($converters as $i => $argument) {
-				$params[$i][$pos] = $argument->getNetworkParameterData();
+				$overloads[$i][$pos] = $argument->getNetworkParameterData();
 			}
 		}
+		if(empty($overloads)){
+			return [];
+		}
+		$base = $overloads[0];
+		$actualOverloads = [$base];
+		foreach($overloads as $i => $overload){
+			$actualOverloads[$i] = array_replace($base, $overload);
+		}
 
-		return $params;
+		return $actualOverloads;
 	}
 }
