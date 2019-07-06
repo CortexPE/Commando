@@ -94,10 +94,10 @@ trait ArgumentableTrait {
 				// try the one that spans more first... before the others
 				usort($possibleArguments, function (BaseArgument $a, BaseArgument $b): int {
 					if($a->getSpanLength() === PHP_INT_MAX) { // if it takes unlimited arguments, pull it down
-						return PHP_INT_MIN;
+						return -1;
 					}
 
-					return $a->getSpanLength();
+					return 1;
 				});
 				$parsed = false;
 				$optional = false;
