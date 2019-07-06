@@ -44,7 +44,7 @@ class IntegerArgument extends BaseArgument {
 	}
 
 	public function canParse(string $testString, CommandSender $sender): bool {
-		return (bool)preg_match("/^-?(?:\d+)$/", $testString);
+		return (bool)preg_match("/^-?\d+$/", $testString);
 	}
 
 	public function parse(string $argument, CommandSender $sender) {

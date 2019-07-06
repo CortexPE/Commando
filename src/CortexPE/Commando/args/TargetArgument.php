@@ -30,47 +30,43 @@ declare(strict_types=1);
 namespace CortexPE\Commando\args;
 
 
+use CortexPE\Commando\args\selector\AllEntitiesSelector;
+use CortexPE\Commando\args\selector\AllPlayersSelector;
+use CortexPE\Commando\args\selector\ExecutorSelector;
+use CortexPE\Commando\args\selector\PlayerSelector;
+use CortexPE\Commando\args\selector\RandomPlayerSelector;
+use CortexPE\Commando\args\selector\SelectorParser;
 use pocketmine\command\CommandSender;
-use pocketmine\network\mcpe\protocol\types\CommandEnum;
-use function array_keys;
-use function array_map;
-use function implode;
-use function preg_match;
-use function spl_object_hash;
-use function strtolower;
+use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 
-abstract class StringEnumArgument extends BaseArgument {
-	protected const VALUES = [];
+class TargetArgument extends BaseArgument {
+	/** @var SelectorParser */
+	private $parser;
 
-	public function __construct(string $name, bool $optional = false) {
+	public function __construct(string $name, bool $optional) {
 		parent::__construct($name, $optional);
 
-		$this->parameterData->enum = new CommandEnum();
-		$this->parameterData->enum->enumName = $this->getEnumName();
-		$this->parameterData->enum->enumValues = $this->getEnumValues();
+		$this->parser = new SelectorParser();
+		$this->parser->registerSelector(new AllEntitiesSelector());
+		$this->parser->registerSelector(new AllPlayersSelector());
+		$this->parser->registerSelector(new ExecutorSelector());
+		$this->parser->registerSelector(new PlayerSelector());
+		$this->parser->registerSelector(new RandomPlayerSelector());
 	}
 
 	public function getNetworkType(): int {
-		// this will be disregarded by PM anyways because this will be considered as a string enum
-		return -1;
+		return AvailableCommandsPacket::ARG_TYPE_TARGET;
+	}
+
+	public function getTypeName(): string {
+		return "target";
 	}
 
 	public function canParse(string $testString, CommandSender $sender): bool {
-		return (bool)preg_match(
-			"/.*?(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ").*?/iu",
-			$testString
-		);
+		return $this->parser->isValid($sender, $testString);
 	}
 
-	public function getValue(string $string) {
-		return static::VALUES[strtolower($string)];
-	}
-
-	public function getEnumName(): string {
-		return "stringEnum#" . spl_object_hash($this);
-	}
-
-	public function getEnumValues(): array {
-		return array_keys(static::VALUES);
+	public function parse(string $argument, CommandSender $sender) {
+		return $this->parser->parse($sender, $argument);
 	}
 }

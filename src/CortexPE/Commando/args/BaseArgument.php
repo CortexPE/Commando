@@ -56,8 +56,8 @@ abstract class BaseArgument {
 	abstract public function getNetworkType(): int;
 
 	/**
-	 * @param string            $testString
-	 * @param CommandSender     $sender
+	 * @param string        $testString
+	 * @param CommandSender $sender
 	 *
 	 * @return bool
 	 */
@@ -97,7 +97,7 @@ abstract class BaseArgument {
 
 	abstract public function getTypeName(): string;
 
-	public function getNetworkParameterData():CommandParameter {
+	public function getNetworkParameterData(): CommandParameter {
 		return $this->parameterData;
 	}
 }
