@@ -107,8 +107,11 @@ class PacketHooker implements Listener {
 			}
 			$scParam = new CommandParameter();
 			$scParam->paramName = $subCommand->getName();
-			$scParam->isOptional = true;
-			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_TYPE_STRING;
+			$scParam->isOptional = false;
+			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_FLAG_ENUM;
+			$scParam->enum = new CommandEnum();
+			$scParam->enum->enumName = $subCommand->getName();
+			$scParam->enum->enumValues = [$subCommand->getName()];
 
 			// it looks uglier imho
 			//$scParam->enum = $scEnum;
