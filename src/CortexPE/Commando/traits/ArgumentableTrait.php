@@ -33,11 +33,12 @@ namespace CortexPE\Commando\traits;
 use CortexPE\Commando\args\BaseArgument;
 use CortexPE\Commando\args\TextArgument;
 use CortexPE\Commando\BaseCommand;
-use function array_slice;
 use CortexPE\Commando\exception\ArgumentOrderException;
+use pocketmine\command\CommandSender;
+use function array_slice;
 use function count;
 use function implode;
-use pocketmine\command\CommandSender;
+use function is_array;
 use function usort;
 
 trait ArgumentableTrait {
@@ -58,14 +59,14 @@ trait ArgumentableTrait {
 	 * @throws ArgumentOrderException
 	 */
 	public function registerArgument(int $position, BaseArgument $argument): void {
-		if($position < 0){
+		if($position < 0) {
 			throw new ArgumentOrderException("You cannot register arguments at negative positions");
 		}
-		if($position > 0 && !isset($this->argumentList[$position - 1])){
+		if($position > 0 && !isset($this->argumentList[$position - 1])) {
 			throw new ArgumentOrderException("There were no arguments before $position");
 		}
-		foreach($this->argumentList[$position - 1] ?? [] as $arg){
-			if($arg instanceof TextArgument){
+		foreach($this->argumentList[$position - 1] ?? [] as $arg) {
+			if($arg instanceof TextArgument) {
 				throw new ArgumentOrderException("No other arguments can be registered after a TextArgument");
 			}
 		}
@@ -82,7 +83,7 @@ trait ArgumentableTrait {
 		];
 		// try parsing arguments
 		$required = count($this->requiredArgumentCount);
-		if(!$this->hasArguments() && count($rawArgs) > 0){
+		if(!$this->hasArguments() && count($rawArgs) > 0) { // doesnt take args but sender gives args anyways
 			$return["errors"][] = [
 				"code" => BaseCommand::ERR_NO_ARGUMENTS,
 				"data" => []
@@ -94,29 +95,39 @@ trait ArgumentableTrait {
 				// try the one that spans more first... before the others
 				usort($possibleArguments, function (BaseArgument $a, BaseArgument $b): int {
 					if($a->getSpanLength() === PHP_INT_MAX) { // if it takes unlimited arguments, pull it down
-						return -1;
+						return 1;
 					}
 
-					return 1;
+					return -1;
 				});
 				$parsed = false;
-				$optional = false;
+				$optional = true;
 				foreach($possibleArguments as $argument) {
-					$slices = array_slice($rawArgs, $offset, ($len = $argument->getSpanLength()));
-					$arg = implode(" ", $slices);
-					if($argument->isOptional()) {
-						$optional = true;
+					$arg = trim(implode(" ", array_slice($rawArgs, $offset, ($len = $argument->getSpanLength()))));
+					if(!$argument->isOptional()) {
+						$optional = false;
 					}
-					if($argument->canParse($arg, $sender)) {
-						$return["arguments"][$argument->getName()] = (clone $argument)->parse($arg, $sender);
+					if($arg !== "" && $argument->canParse($arg, $sender)) {
+						$k = $argument->getName();
+						$result = (clone $argument)->parse($arg, $sender);
+						if(isset($return["arguments"][$k]) && !is_array($return["arguments"][$k])) {
+							$old = $return["arguments"][$k];
+							unset($return["arguments"][$k]);
+							$return["arguments"][$k] = [$old];
+							$return["arguments"][$k][] = $result;
+						} elseif(count($possibleArguments) > 1) {
+							$return["arguments"][$k] = [$result];
+						} else {
+							$return["arguments"][$k] = $result;
+						}
 						if(!$optional) {
 							$required--;
 						}
-						$parsed = true;
 						$offset += $len;
+						$parsed = true;
 						break;
 					}
-					if($offset >= count($rawArgs) - 1){
+					if($offset >= count($rawArgs) - 1) {
 						break; // we've reached the end of the argument list the user passed
 					}
 				}
@@ -128,6 +139,7 @@ trait ArgumentableTrait {
 							"position" => $pos + 1
 						]
 					];
+
 					return $return; // let's break it here.
 				}
 			}
@@ -168,11 +180,24 @@ trait ArgumentableTrait {
 			}
 		}
 		$msg .= implode(" ", $args);
+
 		return $msg;
 	}
 
 	public function hasArguments(): bool {
 		return !empty($this->argumentList);
+	}
+
+	public function hasRequiredArguments(): bool {
+		foreach($this->argumentList as $arguments) {
+			foreach($arguments as $argument) {
+				if(!$argument->isOptional()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
