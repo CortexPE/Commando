@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace CortexPE\Commando\exception;
 
 
-class CommandoException extends \Exception {
+use Exception;
+
+class CommandoException extends Exception {
 
 }

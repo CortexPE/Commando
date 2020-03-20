@@ -80,6 +80,11 @@ class PacketHooker implements Listener {
 			foreach($pk->commandData as $commandName => $commandData) {
 				$cmd = $this->map->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
+					foreach($cmd->getConstraints() as $constraint){
+						if(!$constraint->isVisibleTo($p)){
+							continue 2;
+						}
+					}
 					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
 				}
 			}
@@ -99,24 +104,27 @@ class PacketHooker implements Listener {
 		$scEnum = new CommandEnum();
 		$scEnum->enumName = $command->getName() . "SubCommands";
 
-		/** @var BaseSubCommand[] $subCommands */
-		$subCommands = array_values(array_unique($command->getSubCommands(), SORT_REGULAR));
-		foreach($subCommands as $sI => $subCommand) {
-			if(!$subCommand->testPermissionSilent($cs)){
+		foreach($command->getSubCommands() as $label => $subCommand) {
+			if(!$subCommand->testPermissionSilent($cs) || $subCommand->getName() !== $label){ // hide aliases
 				continue;
 			}
+			foreach($subCommand->getConstraints() as $constraint){
+				if(!$constraint->isVisibleTo($cs)){
+					continue 2;
+				}
+			}
 			$scParam = new CommandParameter();
-			$scParam->paramName = $subCommand->getName();
-			$scParam->isOptional = false;
+			$scParam->paramName = $label;
 			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_FLAG_ENUM;
+			$scParam->isOptional = false;
 			$scParam->enum = new CommandEnum();
-			$scParam->enum->enumName = $subCommand->getName();
-			$scParam->enum->enumValues = [$subCommand->getName()];
+			$scParam->enum->enumName = $label;
+			$scParam->enum->enumValues = [$label];
 
 			// it looks uglier imho
 			//$scParam->enum = $scEnum;
 
-			$scEnum->enumValues[] = $subCommand->getName();
+			$scEnum->enumValues[] = $label;
 
 			$overloadList = self::generateOverloadList($subCommand);
 			if(!empty($overloadList)){
@@ -142,13 +150,36 @@ class PacketHooker implements Listener {
 	 * @return CommandParameter[][]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
-		$params = [];
-		foreach($argumentable->getArgumentList() as $pos => $converters) {
-			foreach($converters as $i => $argument) {
-				$params[$i][$pos] = $argument->getNetworkParameterData();
-			}
+		$input = $argumentable->getArgumentList();
+		$combinations = [];
+		$outputLength = array_product(array_map("count", $input));
+		$indexes = [];
+		foreach($input as $k => $charList){
+			$indexes[$k] = 0;
 		}
+		do {
+			/** @var CommandParameter[] $set */
+			$set = [];
+			foreach($indexes as $k => $index){
+				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
-		return $params;
+				if(isset($param->enum) && $param->enum instanceof CommandEnum){
+					$param->enum->enumName = "enum#" . spl_object_id($param->enum);
+				}
+			}
+			$combinations[] = $set;
+
+			foreach($indexes as $k => $v){
+				$indexes[$k]++;
+				$lim = count($input[$k]);
+				if($indexes[$k] >= $lim){
+					$indexes[$k] = 0;
+					continue;
+				}
+				break;
+			}
+		} while(count($combinations) !== $outputLength);
+
+		return $combinations;
 	}
 }

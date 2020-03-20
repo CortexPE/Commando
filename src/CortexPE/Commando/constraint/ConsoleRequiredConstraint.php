@@ -27,45 +27,24 @@
  */
 declare(strict_types=1);
 
-namespace CortexPE\Commando\args;
+namespace CortexPE\Commando\constraint;
 
 
 use pocketmine\command\CommandSender;
-use pocketmine\network\mcpe\protocol\types\CommandEnum;
-use function array_keys;
-use function array_map;
-use function implode;
-use function preg_match;
-use function spl_object_hash;
-use function strtolower;
+use pocketmine\Player;
+use pocketmine\utils\TextFormat;
 
-abstract class StringEnumArgument extends BaseArgument {
-	protected const VALUES = [];
+class ConsoleRequiredConstraint extends BaseConstraint {
 
-	public function __construct(string $name, bool $optional = false) {
-		parent::__construct($name, $optional);
+    public function test(CommandSender $sender, string $aliasUsed, array $args): bool {
+        return $this->isVisibleTo($sender);
+    }
 
-		$this->parameterData->enum = new CommandEnum();
-		$this->parameterData->enum->enumValues = $this->getEnumValues();
-	}
+    public function onFailure(CommandSender $sender, string $aliasUsed, array $args): void {
+        $sender->sendMessage(TextFormat::RED . "This command must be executed from a server console."); // f*ck off grammar police
+    }
 
-	public function getNetworkType(): int {
-		// this will be disregarded by PM anyways because this will be considered as a string enum
-		return -1;
-	}
-
-	public function canParse(string $testString, CommandSender $sender): bool {
-		return (bool)preg_match(
-			"/^(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ")$/iu",
-			$testString
-		);
-	}
-
-	public function getValue(string $string) {
-		return static::VALUES[strtolower($string)];
-	}
-
-	public function getEnumValues(): array {
-		return array_keys(static::VALUES);
+    public function isVisibleTo(CommandSender $sender): bool {
+		return !($sender instanceof Player);
 	}
 }

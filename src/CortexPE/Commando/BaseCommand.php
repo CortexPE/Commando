@@ -31,6 +31,7 @@ namespace CortexPE\Commando;
 
 
 use CortexPE\Commando\args\BaseArgument;
+use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\exception\InvalidErrorCode;
 use CortexPE\Commando\exception\SubCommandCollision;
 use CortexPE\Commando\traits\ArgumentableTrait;
@@ -46,7 +47,7 @@ use function dechex;
 use function implode;
 use function str_replace;
 
-abstract class BaseCommand extends Command implements IArgumentable {
+abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	use ArgumentableTrait;
 
 	public const ERR_INVALID_ARG_VALUE = 0x01;
@@ -67,6 +68,9 @@ abstract class BaseCommand extends Command implements IArgumentable {
 
 	/** @var BaseSubCommand[] */
 	private $subCommands = [];
+
+	/** @var BaseConstraint[] */
+	private $constraints = [];
 
 	public function __construct(
 		string $name,
@@ -115,8 +119,17 @@ abstract class BaseCommand extends Command implements IArgumentable {
 			}
 
 			$passArgs = $this->attemptArgumentParsing($cmd, $args);
+		} elseif($this->hasRequiredArguments()){
+			$this->sendError(self::ERR_INSUFFICIENT_ARGUMENTS);
+			return;
 		}
 		if($passArgs !== null) {
+		    foreach ($cmd->getConstraints() as $constraint){
+		        if(!$constraint->test($sender, $usedAlias, $passArgs)){
+		            $constraint->onFailure($sender, $usedAlias, $passArgs);
+		            return;
+                }
+            }
 			$cmd->onRun($sender, $usedAlias, $passArgs);
 		}
 	}
@@ -192,4 +205,19 @@ abstract class BaseCommand extends Command implements IArgumentable {
 	public function getSubCommands(): array {
 		return $this->subCommands;
 	}
+
+	public function addConstraint(BaseConstraint $constraint) : void {
+	    $this->constraints[] = $constraint;
+    }
+
+    /**
+     * @return BaseConstraint[]
+     */
+    public function getConstraints(): array {
+        return $this->constraints;
+    }
+
+    public function getUsageMessage(): string {
+        return $this->getUsage();
+    }
 }

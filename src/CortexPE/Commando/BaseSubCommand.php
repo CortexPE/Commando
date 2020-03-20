@@ -30,12 +30,13 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
+use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\traits\ArgumentableTrait;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\CommandSender;
 use function explode;
 
-abstract class BaseSubCommand implements IArgumentable {
+abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	use ArgumentableTrait;
 	/** @var string */
 	private $name;
@@ -51,6 +52,8 @@ abstract class BaseSubCommand implements IArgumentable {
 	protected $currentSender;
 	/** @var BaseCommand */
 	protected $parent;
+	/** @var BaseConstraint[] */
+	private $constraints = [];
 
 	public function __construct(string $name, string $description = "", array $aliases = []) {
 		$this->name = $name;
@@ -72,13 +75,6 @@ abstract class BaseSubCommand implements IArgumentable {
 	}
 
 	/**
-	 * @param string $name
-	 */
-	public function setName(string $name): void {
-		$this->name = $name;
-	}
-
-	/**
 	 * @return string[]
 	 */
 	public function getAliases(): array {
@@ -86,24 +82,10 @@ abstract class BaseSubCommand implements IArgumentable {
 	}
 
 	/**
-	 * @param string[] $aliases
-	 */
-	public function setAliases(array $aliases): void {
-		$this->aliases = $aliases;
-	}
-
-	/**
 	 * @return string
 	 */
 	public function getDescription(): string {
 		return $this->description;
-	}
-
-	/**
-	 * @param string $description
-	 */
-	public function setDescription(string $description): void {
-		$this->description = $description;
 	}
 
 	/**
@@ -165,4 +147,15 @@ abstract class BaseSubCommand implements IArgumentable {
 	public function sendUsage():void {
 		$this->currentSender->sendMessage("/{$this->parent->getName()} {$this->usageMessage}");
 	}
+
+    public function addConstraint(BaseConstraint $constraint) : void {
+        $this->constraints[] = $constraint;
+    }
+
+    /**
+     * @return BaseConstraint[]
+     */
+    public function getConstraints(): array {
+        return $this->constraints;
+    }
 }

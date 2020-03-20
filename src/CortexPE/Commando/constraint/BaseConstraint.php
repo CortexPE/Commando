@@ -27,45 +27,37 @@
  */
 declare(strict_types=1);
 
-namespace CortexPE\Commando\args;
+namespace CortexPE\Commando\constraint;
 
 
+use CortexPE\Commando\IRunnable;
 use pocketmine\command\CommandSender;
-use pocketmine\network\mcpe\protocol\types\CommandEnum;
-use function array_keys;
-use function array_map;
-use function implode;
-use function preg_match;
-use function spl_object_hash;
-use function strtolower;
 
-abstract class StringEnumArgument extends BaseArgument {
-	protected const VALUES = [];
+abstract class BaseConstraint {
+    /** @var IRunnable */
+    protected $context;
 
-	public function __construct(string $name, bool $optional = false) {
-		parent::__construct($name, $optional);
+    /**
+     * BaseConstraint constructor.
+     *
+     * "Context" is required so that this new-constraint-system doesn't hinder getting command info
+     *
+     * @param IRunnable $context
+     */
+    public function __construct(IRunnable $context) {
+        $this->context = $context;
+    }
 
-		$this->parameterData->enum = new CommandEnum();
-		$this->parameterData->enum->enumValues = $this->getEnumValues();
-	}
+    /**
+     * @return IRunnable
+     */
+    public function getContext(): IRunnable {
+        return $this->context;
+    }
 
-	public function getNetworkType(): int {
-		// this will be disregarded by PM anyways because this will be considered as a string enum
-		return -1;
-	}
+    abstract public function test(CommandSender $sender, string $aliasUsed, array $args): bool;
 
-	public function canParse(string $testString, CommandSender $sender): bool {
-		return (bool)preg_match(
-			"/^(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ")$/iu",
-			$testString
-		);
-	}
+    abstract public function onFailure(CommandSender $sender, string $aliasUsed, array $args): void;
 
-	public function getValue(string $string) {
-		return static::VALUES[strtolower($string)];
-	}
-
-	public function getEnumValues(): array {
-		return array_keys(static::VALUES);
-	}
+    abstract public function isVisibleTo(CommandSender $sender): bool;
 }
