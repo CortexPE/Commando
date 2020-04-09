@@ -102,7 +102,7 @@ abstract class BaseArgument {
 	 * @param int $spanLength
 	 * @return BaseArgument
 	 */
-	public function setSpanLength($spanLength){
+	public function setSpanLength(int $spanLength){
 		$this->spanLength = $spanLength;
 
 		return $this;
