@@ -39,12 +39,15 @@ abstract class BaseArgument {
 	protected $name;
 	/** @var bool */
 	protected $optional = false;
+	/** @var int */
+	protected $spanLength = 1;
 	/** @var CommandParameter */
 	protected $parameterData;
 
 	public function __construct(string $name, bool $optional = false) {
 		$this->name = $name;
 		$this->optional = $optional;
+		$this->spanLength = 1;
 
 		$this->parameterData = new CommandParameter();
 		$this->parameterData->paramName = $name;
@@ -92,7 +95,17 @@ abstract class BaseArgument {
 	 * @return int
 	 */
 	public function getSpanLength(): int {
-		return 1;
+		return $this->spanLength;
+	}
+
+	/**
+	 * @param int $spanLength
+	 * @return BaseArgument
+	 */
+	public function setSpanLength($spanLength){
+		$this->spanLength = $spanLength;
+
+		return $this;
 	}
 
 	abstract public function getTypeName(): string;
