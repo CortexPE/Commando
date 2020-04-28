@@ -118,8 +118,6 @@ trait ArgumentableTrait {
 							unset($return["arguments"][$k]);
 							$return["arguments"][$k] = [$old];
 							$return["arguments"][$k][] = $result;
-						} elseif(count($possibleArguments) > 1) {
-							$return["arguments"][$k] = [$result];
 						} else {
 							$return["arguments"][$k] = $result;
 						}
@@ -128,7 +126,6 @@ trait ArgumentableTrait {
 						}
 						$offset += $len;
 						$parsed = true;
-						break;
 					}
 					if($offset > count($rawArgs)) {
 						break; // we've reached the end of the argument list the user passed
