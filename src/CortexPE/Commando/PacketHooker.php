@@ -43,6 +43,7 @@ use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use function array_unshift;
+use function count;
 
 class PacketHooker implements Listener {
 	/** @var bool */
@@ -155,28 +156,24 @@ class PacketHooker implements Listener {
 		foreach($input as $k => $charList){
 			$indexes[$k] = 0;
 		}
-		do {
-			/** @var CommandParameter[] $set
-			$set = [];
-			foreach($indexes as $k => $index){
-				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
+        do {
+            /** @var CommandParameter[] $set */
+            $set = [];
+            foreach($indexes as $k => $index){
+                $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
+            }
+            $combinations[] = $set;
 
-				/*if(isset($param->enum) && $param->enum instanceof CommandEnum){
-					$param->enum->enumName = "enum#" . spl_object_id($param->enum);
-				}
-			}
-			$combinations[] = $set;*/
-
-			foreach($indexes as $k => $v){
-				$indexes[$k]++;
-				$lim = count($input[$k]);
-				if($indexes[$k] >= $lim){
-					$indexes[$k] = 0;
-					continue;
-				}
-				break;
-			}
-		} while(count($combinations) !== $outputLength);
+            foreach($indexes as $k => $v){
+                $indexes[$k]++;
+                $lim = count($input[$k]);
+                if($indexes[$k] >= $lim){
+                    $indexes[$k] = 0;
+                    continue;
+                }
+                break;
+            }
+        } while(count($combinations) !== $outputLength);
 
 		return $combinations;
 	}
