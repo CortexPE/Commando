@@ -1,7 +1,10 @@
-<h1>Commando<img src="https://raw.githubusercontent.com/CortexPE/Commando/master/commando.png" height="64" width="64" align="left"></img>&nbsp;<img src="https://poggit.pmmp.io/ci.shield/CortexPE/Commando/~"></img></h1>
+<h1>Commando<img src="https://raw.githubusercontent.com/CortexPE/Commando/master/commando.png" height="64" width="64" align="left"></h1>
 <br />
 
 A PocketMine-MP Virion for easier implementation of dynamic commands, including support for Minecraft: Bedrock Edition argument listing aimed for both the end users and the plugin developers.
+
+# Link:
+https://poggit.pmmp.io/ci/ParoxityTeam/Commando
 
 # Usage:
 Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/ci/CortexPE/Commando/~) or integrate the virion itself into your plugin.
