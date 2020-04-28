@@ -42,9 +42,7 @@ use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
-use function array_unique;
 use function array_unshift;
-use function array_values;
 
 class PacketHooker implements Listener {
 	/** @var bool */
@@ -158,16 +156,16 @@ class PacketHooker implements Listener {
 			$indexes[$k] = 0;
 		}
 		do {
-			/** @var CommandParameter[] $set */
+			/** @var CommandParameter[] $set
 			$set = [];
 			foreach($indexes as $k => $index){
 				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
-				if(isset($param->enum) && $param->enum instanceof CommandEnum){
+				/*if(isset($param->enum) && $param->enum instanceof CommandEnum){
 					$param->enum->enumName = "enum#" . spl_object_id($param->enum);
 				}
 			}
-			$combinations[] = $set;
+			$combinations[] = $set;*/
 
 			foreach($indexes as $k => $v){
 				$indexes[$k]++;
