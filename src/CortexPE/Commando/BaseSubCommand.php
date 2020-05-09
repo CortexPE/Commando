@@ -30,105 +30,12 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
-use CortexPE\Commando\constraint\BaseConstraint;
-use CortexPE\Commando\traits\ArgumentableTrait;
-use CortexPE\Commando\traits\IArgumentable;
-use pocketmine\command\CommandSender;
-use function explode;
-
-abstract class BaseSubCommand implements IArgumentable, IRunnable {
-	use ArgumentableTrait;
-	/** @var string */
-	private $name;
-	/** @var string[] */
-	private $aliases = [];
-	/** @var string */
-	private $description = "";
-	/** @var string */
-	protected $usageMessage;
-	/** @var string|null */
-	private $permission = null;
-	/** @var CommandSender */
-	protected $currentSender;
+abstract class BaseSubCommand extends BaseCommand{
 	/** @var BaseCommand */
 	protected $parent;
-	/** @var BaseConstraint[] */
-	private $constraints = [];
 
-	public function __construct(string $name, string $description = "", array $aliases = []) {
-		$this->name = $name;
-		$this->description = $description;
-		$this->aliases = $aliases;
-
-		$this->prepare();
-
-		$this->usageMessage = $this->generateUsageMessage();
-	}
-
-	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
-
-	/**
-	 * @return string
-	 */
-	public function getName(): string {
-		return $this->name;
-	}
-
-	/**
-	 * @return string[]
-	 */
-	public function getAliases(): array {
-		return $this->aliases;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getDescription(): string {
-		return $this->description;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getUsageMessage(): string {
-		return $this->usageMessage;
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function getPermission(): ?string {
-		return $this->permission;
-	}
-
-	/**
-	 * @param string $permission
-	 */
-	public function setPermission(string $permission): void {
-		$this->permission = $permission;
-	}
-
-	public function testPermissionSilent(CommandSender $sender): bool {
-		if(empty($this->permission)) {
-			return true;
-		}
-		foreach(explode(";", $this->permission) as $permission) {
-			if($sender->hasPermission($permission)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * @param CommandSender $currentSender
-	 *
-	 * @internal Used to pass the current sender from the parent command
-	 */
-	public function setCurrentSender(CommandSender $currentSender): void {
-		$this->currentSender = $currentSender;
+	public function getParent(): ?BaseCommand {
+		return $this->parent;
 	}
 
 	/**
@@ -138,24 +45,12 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	 */
 	public function setParent(BaseCommand $parent): void {
 		$this->parent = $parent;
+
+		$parentNames = $parent->getName();
+		while($parent instanceof BaseSubCommand) {
+			$parentNames = $parent->getName() . " " . $parentNames;
+			$parent = $parent->getParent();
+		}
+		$this->usageMessage = $this->generateUsageMessage($parentNames);
 	}
-
-	public function sendError(int $errorCode, array $args = []): void {
-		$this->parent->sendError($errorCode, $args);
-	}
-
-	public function sendUsage():void {
-		$this->currentSender->sendMessage("/{$this->parent->getName()} {$this->usageMessage}");
-	}
-
-    public function addConstraint(BaseConstraint $constraint) : void {
-        $this->constraints[] = $constraint;
-    }
-
-    /**
-     * @return BaseConstraint[]
-     */
-    public function getConstraints(): array {
-        return $this->constraints;
-    }
 }

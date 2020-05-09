@@ -160,8 +160,9 @@ trait ArgumentableTrait {
 		return $return;
 	}
 
-	public function generateUsageMessage(): string {
-		$msg = $this->getName() . " ";
+	public function generateUsageMessage(string $parent = ""): string {
+		$name = $parent . (empty($parent) ? "" : " ") . $this->getName();
+		$msg = "/" . $name . " ";
 		$args = [];
 		foreach($this->argumentList as $pos => $arguments) {
 			$hasOptional = false;
@@ -180,6 +181,9 @@ trait ArgumentableTrait {
 			}
 		}
 		$msg .= implode(" ", $args);
+		foreach ($this->subCommands as $label => $subCommand) {
+			if($label === $subCommand->getName()) $msg .= "\n - " . $subCommand->generateUsageMessage($name);
+		}
 
 		return $msg;
 	}

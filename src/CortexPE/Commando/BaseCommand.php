@@ -80,12 +80,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 
 		$this->prepare();
 
-		$usages = ["/" . $this->generateUsageMessage()];
-		foreach($this->subCommands as $subCommand) {
-			$usages[] = $subCommand->getUsageMessage();
-		}
-		$usages = array_unique($usages);
-		$this->usageMessage = implode("\n - /" . $this->getName() . " ", $usages);
+		$this->usageMessage = $this->generateUsageMessage();
 	}
 
 	final public function execute(CommandSender $sender, string $usedAlias, array $args) {
@@ -99,22 +94,8 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 		if(count($args) > 0) {
 			if(isset($this->subCommands[($label = $args[0])])) {
 				array_shift($args);
-				$cmd = $this->subCommands[$label];
-				$cmd->setCurrentSender($sender);
-				if(!$cmd->testPermissionSilent($sender)) {
-					$msg = $this->getPermissionMessage();
-					if($msg === null) {
-						$sender->sendMessage(
-							$sender->getServer()->getLanguage()->translateString(
-								TextFormat::RED . "%commands.generic.permission"
-							)
-						);
-					} elseif(empty($msg)) {
-						$sender->sendMessage(str_replace("<permission>", $cmd->getPermission(), $msg));
-					}
-
-					return;
-				}
+				$this->subCommands[$label]->execute($sender, $label, $args);
+				return;
 			}
 
 			$passArgs = $this->attemptArgumentParsing($cmd, $args);
@@ -206,17 +187,17 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	}
 
 	public function addConstraint(BaseConstraint $constraint) : void {
-	    $this->constraints[] = $constraint;
-    }
+		$this->constraints[] = $constraint;
+	}
 
-    /**
-     * @return BaseConstraint[]
-     */
-    public function getConstraints(): array {
-        return $this->constraints;
-    }
+	/**
+	 * @return BaseConstraint[]
+	 */
+	public function getConstraints(): array {
+		return $this->constraints;
+	}
 
-    public function getUsageMessage(): string {
-        return $this->getUsage();
-    }
+	public function getUsageMessage(): string {
+		return $this->getUsage();
+	}
 }
