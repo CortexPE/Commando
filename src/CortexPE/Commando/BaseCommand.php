@@ -30,7 +30,6 @@ declare(strict_types=1);
 namespace CortexPE\Commando;
 
 
-use CortexPE\Commando\args\BaseArgument;
 use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\exception\InvalidErrorCode;
 use CortexPE\Commando\traits\ArgumentableTrait;
@@ -43,7 +42,6 @@ use function array_unique;
 use function array_unshift;
 use function count;
 use function dechex;
-use function implode;
 use function str_replace;
 
 abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
@@ -133,11 +131,6 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 		return $dat["arguments"];
 	}
 
-	/**
-	 * @param CommandSender  $sender
-	 * @param string         $aliasUsed
-	 * @param BaseArgument[] $args
-	 */
 	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
 
 	protected function sendUsage(): void {
