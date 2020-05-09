@@ -34,6 +34,10 @@ abstract class BaseSubCommand extends BaseCommand{
 	/** @var BaseCommand */
 	protected $parent;
 
+	public function getParent(): ?BaseCommand {
+		return $this->parent;
+	}
+
 	/**
 	 * @param BaseCommand $parent
 	 *
@@ -41,5 +45,12 @@ abstract class BaseSubCommand extends BaseCommand{
 	 */
 	public function setParent(BaseCommand $parent): void {
 		$this->parent = $parent;
+
+		$parentNames = $parent->getName();
+		while($parent instanceof BaseSubCommand) {
+			$parentNames = $parent->getName() . " " . $parentNames;
+			$parent = $parent->getParent();
+		}
+		$this->usageMessage = $this->generateUsageMessage($parentNames);
 	}
 }
