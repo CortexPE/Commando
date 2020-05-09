@@ -46,6 +46,7 @@ abstract class StringEnumArgument extends BaseArgument {
 		parent::__construct($name, $optional);
 
 		$this->parameterData->enum = new CommandEnum();
+		$this->parameterData->enum->enumName = $name;
 		$this->parameterData->enum->enumValues = $this->getEnumValues();
 	}
 
