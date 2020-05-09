@@ -39,6 +39,7 @@ use function array_slice;
 use function count;
 use function implode;
 use function is_array;
+use function trim;
 use function usort;
 
 trait ArgumentableTrait {
@@ -185,7 +186,7 @@ trait ArgumentableTrait {
 			if($label === $subCommand->getName()) $msg .= "\n - " . $subCommand->generateUsageMessage($name);
 		}
 
-		return $msg;
+		return trim($msg);
 	}
 
 	public function hasArguments(): bool {
