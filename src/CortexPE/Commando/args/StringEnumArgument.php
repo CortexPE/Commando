@@ -36,7 +36,6 @@ use function array_keys;
 use function array_map;
 use function implode;
 use function preg_match;
-use function spl_object_hash;
 use function strtolower;
 
 abstract class StringEnumArgument extends BaseArgument {
@@ -46,7 +45,7 @@ abstract class StringEnumArgument extends BaseArgument {
 		parent::__construct($name, $optional);
 
 		$this->parameterData->enum = new CommandEnum();
-		$this->parameterData->enum->enumName = $name;
+		$this->parameterData->enum->enumName = $this->getEnumName();
 		$this->parameterData->enum->enumValues = $this->getEnumValues();
 	}
 
@@ -60,6 +59,10 @@ abstract class StringEnumArgument extends BaseArgument {
 			"/^(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ")$/iu",
 			$testString
 		);
+	}
+
+	public function getEnumName(): string {
+		return "enum#" . spl_object_id($this->parameterData->enum);
 	}
 
 	public function getValue(string $string) {
