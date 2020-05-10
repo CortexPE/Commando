@@ -6,7 +6,7 @@ A PocketMine-MP Virion for easier implementation of dynamic commands, including 
 # Usage:
 Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/ci/CortexPE/Commando/~) or integrate the virion itself into your plugin.
 
-This virion is purely object oriented. So, to use it you'll have to extend the `BaseCommand` object, import the `PacketHooker` object and the optional objects for subommands and arguments (whenever necessary)
+This virion is purely object oriented. So, to use it you'll have to extend the `BaseCommand` object, import the `PacketHooker` object and the optional objects for subcommands and arguments (whenever necessary).
 
 # Why is this necessary?
 The virion provides an easy way to verify user input, convert user input, and for making sure that our arguments are the type that we expect it to.
@@ -26,7 +26,7 @@ It is structured in a similar way to the legacy PocketMine commands for ease of 
 ***NOTE: Other miscellaneous functions can be indexed within your IDEs or by reading the source code. This is only the basic usage of the virion, it does not show every aspect of it as that'd be too long to document.***
 
 ### Create your command class
-In our command class, we need to extend `BaseCommand` and implement its required methods to use all of Commando's features
+In our command class, we need to extend `BaseCommand` and implement its required methods to use all of Commando's features.
 ```php
 <?php
 
@@ -45,7 +45,7 @@ class MyCommand extends BaseCommand {
 ```
 
 ### Register the arguments
-If we register arguments, we need to import and use / extend (if needed) the provided argument objects
+If we register arguments, we need to import and use / extend (if needed) the provided argument objects.
 ```php
 use CortexPE\Commando\args\RawStringArgument;
 

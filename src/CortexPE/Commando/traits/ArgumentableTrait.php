@@ -69,6 +69,9 @@ trait ArgumentableTrait {
 			if($arg instanceof TextArgument) {
 				throw new ArgumentOrderException("No other arguments can be registered after a TextArgument");
 			}
+			if($arg->isOptional() && !$argument->isOptional()){
+				throw new ArgumentOrderException("You cannot register a required argument after an optional argument");
+			}
 		}
 		$this->argumentList[$position][] = $argument;
 		if(!$argument->isOptional()) {

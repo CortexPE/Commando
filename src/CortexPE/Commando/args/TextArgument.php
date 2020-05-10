@@ -45,4 +45,7 @@ class TextArgument extends RawStringArgument {
 	public function getSpanLength(): int {
 		return PHP_INT_MAX;
 	}
+	public function canParse(string $testString, CommandSender $sender): bool {
+		return $testString !== "";
+	}
 }
