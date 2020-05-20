@@ -82,7 +82,7 @@ use CortexPE\Commando\PacketHooker;
 Once we've constructed our command with our arguments and subcommands, we can now register our command to PocketMine's command map, to be available to our users.
 ```php
 // onEnable:
-$this->getServer()->getCommandMap()->register("myplugin", new MyCommand("greet", "Make the server greet you!"));
+$this->getServer()->getCommandMap()->register("myplugin", new MyCommand($this, "greet", "Make the server greet you!"));
 ```
 The only difference with using this framework is that you don't need to set the usage message, as they are pre-generated after all the arguments have been registered.
 

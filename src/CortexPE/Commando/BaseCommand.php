@@ -37,6 +37,8 @@ use CortexPE\Commando\traits\ArgumentableTrait;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\PluginIdentifiableCommand;
+use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 use function array_shift;
 use function array_unique;
@@ -46,7 +48,7 @@ use function dechex;
 use function implode;
 use function str_replace;
 
-abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
+abstract class BaseCommand extends Command implements IArgumentable, IRunnable, PluginIdentifiableCommand {
 	use ArgumentableTrait;
 
 	public const ERR_INVALID_ARG_VALUE = 0x01;
@@ -71,11 +73,16 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	/** @var BaseConstraint[] */
 	private $constraints = [];
 
+	/** @var Plugin */
+	private $plugin;
+
 	public function __construct(
+		Plugin $plugin,
 		string $name,
 		string $description = "",
 		array $aliases = []
 	) {
+		$this->plugin = $plugin;
 		parent::__construct($name, $description, null, $aliases);
 
 		$this->prepare();
@@ -86,6 +93,10 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 		}
 		$usages = array_unique($usages);
 		$this->usageMessage = implode("\n - /" . $this->getName() . " ", $usages);
+	}
+
+	public function getPlugin(): Plugin {
+		return $this->plugin;
 	}
 
 	final public function execute(CommandSender $sender, string $usedAlias, array $args) {
@@ -123,12 +134,12 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 			return;
 		}
 		if($passArgs !== null) {
-		    foreach ($cmd->getConstraints() as $constraint){
-		        if(!$constraint->test($sender, $usedAlias, $passArgs)){
-		            $constraint->onFailure($sender, $usedAlias, $passArgs);
-		            return;
-                }
-            }
+			foreach ($cmd->getConstraints() as $constraint){
+				if(!$constraint->test($sender, $usedAlias, $passArgs)){
+					$constraint->onFailure($sender, $usedAlias, $passArgs);
+					return;
+				}
+			}
 			$cmd->onRun($sender, $usedAlias, $passArgs);
 		}
 	}
@@ -206,17 +217,17 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	}
 
 	public function addConstraint(BaseConstraint $constraint) : void {
-	    $this->constraints[] = $constraint;
-    }
+		$this->constraints[] = $constraint;
+	}
 
-    /**
-     * @return BaseConstraint[]
-     */
-    public function getConstraints(): array {
-        return $this->constraints;
-    }
+	/**
+	 * @return BaseConstraint[]
+	 */
+	public function getConstraints(): array {
+		return $this->constraints;
+	}
 
-    public function getUsageMessage(): string {
-        return $this->getUsage();
-    }
+	public function getUsageMessage(): string {
+		return $this->getUsage();
+	}
 }
