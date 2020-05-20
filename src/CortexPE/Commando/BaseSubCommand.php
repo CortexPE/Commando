@@ -34,6 +34,7 @@ use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\traits\ArgumentableTrait;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\CommandSender;
+use pocketmine\plugin\Plugin;
 use function explode;
 
 abstract class BaseSubCommand implements IArgumentable, IRunnable {
@@ -158,4 +159,11 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
     public function getConstraints(): array {
         return $this->constraints;
     }
+
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin(): Plugin {
+		return $this->parent->getPlugin();
+	}
 }
