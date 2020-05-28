@@ -51,13 +51,15 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	public const ERR_TOO_MANY_ARGUMENTS = 0x02;
 	public const ERR_INSUFFICIENT_ARGUMENTS = 0x03;
 	public const ERR_NO_ARGUMENTS = 0x04;
+	public const ERR_INVALID_ARGUMENTS = 0x05;
 
 	/** @var string[] */
 	protected $errorMessages = [
-		self::ERR_INVALID_ARG_VALUE => TextFormat::RED . "Invalid value '{value}' for argument #{position}",
-		self::ERR_TOO_MANY_ARGUMENTS => TextFormat::RED . "Too many arguments given",
-		self::ERR_INSUFFICIENT_ARGUMENTS => TextFormat::RED . "Insufficient number of arguments given",
-		self::ERR_NO_ARGUMENTS => TextFormat::RED . "No arguments are required for this command",
+		self::ERR_INVALID_ARG_VALUE => TextFormat::RED . "Invalid value '{value}' for argument #{position}. Expecting: {expected}.",
+		self::ERR_TOO_MANY_ARGUMENTS => TextFormat::RED . "Too many arguments given.",
+		self::ERR_INSUFFICIENT_ARGUMENTS => TextFormat::RED . "Insufficient number of arguments given.",
+		self::ERR_NO_ARGUMENTS => TextFormat::RED . "No arguments are required for this command.",
+		self::ERR_INVALID_ARGUMENTS => TextFormat::RED . "Invalid arguments supplied.",
 	];
 
 	/** @var CommandSender */
@@ -143,6 +145,8 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 			$str = str_replace("{{$item}}", $value, $str);
 		}
 		$this->currentSender->sendMessage($str);
+		//know of a better way? pr then :)
+		$this->currentSender->sendMessage(TextFormat::RED . "Usage: " .  str_replace("\n", "\n" . TextFormat::RED, $this->getUsage()));
 	}
 
 	public function setErrorFormat(int $errorCode, string $format): void {
