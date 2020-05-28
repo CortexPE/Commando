@@ -193,4 +193,8 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	public function getUsageMessage(): string {
 		return $this->getUsage();
 	}
+
+	public function setCurrentSender(CommandSender $sender): void{
+		$this->currentSender = $sender;
+	}
 }
