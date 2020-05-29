@@ -54,7 +54,7 @@ abstract class BaseSubCommand extends BaseCommand{
 	 * @return string
 	 */
 	public function getUsage(): string{
-		$parent = ($this instanceof BaseSubCommand) ? $this->parent : $this;
+		$parent = $this->parent;
 		$parentNames = "";
 
 		while($parent instanceof BaseSubCommand) {
