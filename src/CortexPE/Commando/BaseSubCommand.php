@@ -58,7 +58,7 @@ abstract class BaseSubCommand extends BaseCommand{
 		$parentNames = "";
 
 		while($parent instanceof BaseSubCommand) {
-			$parentNames = $parent->getName() . "" . $parentNames;
+			$parentNames = $parent->getName() . $parentNames;
 			$parent = $parent->getParent();
 		}
 
