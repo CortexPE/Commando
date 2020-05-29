@@ -36,6 +36,8 @@ use CortexPE\Commando\traits\ArgumentableTrait;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\PluginIdentifiableCommand;
+use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 use function array_shift;
 use function array_unique;
@@ -44,7 +46,7 @@ use function count;
 use function dechex;
 use function str_replace;
 
-abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
+abstract class BaseCommand extends Command implements IArgumentable, IRunnable, PluginIdentifiableCommand {
 	use ArgumentableTrait;
 
 	public const ERR_INVALID_ARG_VALUE = 0x01;
@@ -71,16 +73,25 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	/** @var BaseConstraint[] */
 	private $constraints = [];
 
+	/** @var Plugin */
+	protected $plugin;
+
 	public function __construct(
+		Plugin $plugin,
 		string $name,
 		string $description = "",
 		array $aliases = []
 	) {
+		$this->plugin = $plugin;
 		parent::__construct($name, $description, null, $aliases);
 
 		$this->prepare();
 
 		$this->usageMessage = $this->generateUsageMessage();
+	}
+
+	public function getPlugin(): Plugin {
+		return $this->plugin;
 	}
 
 	final public function execute(CommandSender $sender, string $usedAlias, array $args) {
@@ -104,12 +115,12 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 			return;
 		}
 		if($passArgs !== null) {
-		    foreach ($cmd->getConstraints() as $constraint){
-		        if(!$constraint->test($sender, $usedAlias, $passArgs)){
-		            $constraint->onFailure($sender, $usedAlias, $passArgs);
-		            return;
-                }
-            }
+			foreach ($cmd->getConstraints() as $constraint){
+				if(!$constraint->test($sender, $usedAlias, $passArgs)){
+					$constraint->onFailure($sender, $usedAlias, $passArgs);
+					return;
+				}
+			}
 			$cmd->onRun($sender, $usedAlias, $passArgs);
 		}
 	}
