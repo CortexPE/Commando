@@ -35,6 +35,7 @@ use CortexPE\Commando\args\TextArgument;
 use CortexPE\Commando\BaseCommand;
 use CortexPE\Commando\exception\ArgumentOrderException;
 use pocketmine\command\CommandSender;
+use pocketmine\utils\TextFormat;
 use function array_slice;
 use function count;
 use function implode;
@@ -188,7 +189,7 @@ trait ArgumentableTrait {
 
 	public function generateUsageMessage(string $parent = ""): string {
 		$name = $parent . (empty($parent) ? "" : " ") . $this->getName();
-		$msg = "/" . $name;
+		$msg = TextFormat::RED .  "/" . $name;
 		$args = [];
 		foreach($this->argumentList as $pos => $arguments) {
 			$hasOptional = false;
@@ -206,7 +207,7 @@ trait ArgumentableTrait {
 				$args[] = "<" . $names . ">";
 			}
 		}
-		$msg .= ((empty($args)) ? "" : " ") .  implode(" ", $args) . ": " . $this->getDescription();
+		$msg .= ((empty($args)) ? "" : " ") .  implode(TextFormat::RED . " ", $args) . ": " . $this->getDescription();
 		foreach($this->subCommands as $label => $subCommand){
 			if($label === $subCommand->getName()){
 				$msg .= "\n - " . $subCommand->generateUsageMessage($name);

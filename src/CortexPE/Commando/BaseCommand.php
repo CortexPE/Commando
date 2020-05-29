@@ -136,7 +136,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
 
 	protected function sendUsage(): void {
-		$this->currentSender->sendMessage("Usage: " . $this->getUsage());
+		$this->currentSender->sendMessage(TextFormat::RED . "Usage: " . $this->getUsage());
 	}
 
 	public function sendError(int $errorCode, array $args = []): void {
@@ -145,8 +145,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable {
 			$str = str_replace("{{$item}}", $value, $str);
 		}
 		$this->currentSender->sendMessage($str);
-		//know of a better way? pr then :)
-		$this->currentSender->sendMessage(TextFormat::RED . "Usage: " .  str_replace("\n", "\n" . TextFormat::RED, $this->getUsage()));
+		$this->sendUsage();
 	}
 
 	public function setErrorFormat(int $errorCode, string $format): void {
