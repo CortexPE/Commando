@@ -29,9 +29,18 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
+use pocketmine\plugin\Plugin;
+use function trim;
+
 abstract class BaseSubCommand extends BaseCommand{
 	/** @var BaseCommand */
 	protected $parent;
+
+	public function __construct(Plugin $plugin, string $name, string $description = "", array $aliases = []){
+		parent::__construct($plugin, $name, $description, $aliases);
+
+		$this->usageMessage = "";
+	}
 
 	public function getParent(): ?BaseCommand {
 		return $this->parent;
@@ -46,26 +55,23 @@ abstract class BaseSubCommand extends BaseCommand{
 		$this->parent = $parent;
 	}
 
-	/**
-	 * Just recalculate this each time for SubCommands..
-	 * A stupid hack to fix broken usage messages.
-	 * Got a better way? PR please :)
-	 *
-	 * @return string
-	 */
 	public function getUsage(): string{
-		$parent = $this->parent;
-		$parentNames = "";
+		if(empty($this->usageMessage)){
+			$parent = $this->parent;
+			$parentNames = "";
 
-		while($parent instanceof BaseSubCommand) {
-			$parentNames = $parent->getName() . $parentNames;
-			$parent = $parent->getParent();
+			while($parent instanceof BaseSubCommand) {
+				$parentNames = $parent->getName() . $parentNames;
+				$parent = $parent->getParent();
+			}
+
+			if($parent instanceof BaseCommand){
+				$parentNames = $parent->getName() . " " . $parentNames;
+			}
+
+			$this->usageMessage = $this->generateUsageMessage(trim($parentNames));
 		}
 
-		if($parent instanceof BaseCommand){
-			$parentNames = $parent->getName() . " " . $parentNames;
-		}
-
-		return $this->generateUsageMessage(trim($parentNames));
+		return $this->usageMessage;
 	}
 }
