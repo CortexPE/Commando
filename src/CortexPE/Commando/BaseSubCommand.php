@@ -44,12 +44,28 @@ abstract class BaseSubCommand extends BaseCommand{
 	 */
 	public function setParent(BaseCommand $parent): void {
 		$this->parent = $parent;
+	}
 
-		$parentNames = $parent->getName();
+	/**
+	 * Just recalculate this each time for SubCommands..
+	 * A stupid hack to fix broken usage messages.
+	 * Got a better way? PR please :)
+	 *
+	 * @return string
+	 */
+	public function getUsage(): string{
+		$parent = ($this instanceof BaseSubCommand) ? $this->parent : $this;
+		$parentNames = "";
+
 		while($parent instanceof BaseSubCommand) {
-			$parentNames = $parent->getName() . " " . $parentNames;
+			$parentNames = $parent->getName() . "" . $parentNames;
 			$parent = $parent->getParent();
 		}
-		$this->usageMessage = $this->generateUsageMessage($parentNames);
+
+		if($parent instanceof BaseCommand){
+			$parentNames = $parent->getName() . " " . $parentNames;
+		}
+
+		return $this->generateUsageMessage(trim($parentNames));
 	}
 }
