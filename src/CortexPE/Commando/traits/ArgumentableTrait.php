@@ -129,6 +129,7 @@ trait ArgumentableTrait {
 						}
 						$offset += $len;
 						$parsed = true;
+						break;
 					}
 					if($offset > count($rawArgs)) {
 						break; // we've reached the end of the argument list the user passed
