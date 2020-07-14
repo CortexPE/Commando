@@ -4,7 +4,9 @@
 A PocketMine-MP Virion for easier implementation of dynamic commands, including support for Minecraft: Bedrock Edition argument listing aimed for both the end users and the plugin developers.
 
 # Usage:
-Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/ci/CortexPE/Commando/~) or integrate the virion itself into your plugin.
+Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/ci/CortexPE/Commando/~), integrate the virion itself into your plugin or you could also use it as a composer library by running the command below:
+
+`composer require cortexpe/commando`
 
 This virion is purely object oriented. So, to use it you'll have to extend the `BaseCommand` object, import the `PacketHooker` object and the optional objects for subcommands and arguments (whenever necessary).
 
