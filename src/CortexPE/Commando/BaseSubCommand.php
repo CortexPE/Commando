@@ -163,7 +163,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	/**
 	 * @return Plugin
 	 */
-	public function getPlugin(): Plugin {
-		return $this->parent->getPlugin();
+	public function getOwningPlugin(): Plugin {
+		return $this->parent->getOwningPlugin();
 	}
 }
