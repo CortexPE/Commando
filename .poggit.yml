@@ -2,9 +2,12 @@
 build-by-default: true
 branches:
 - master
+- PM-4.0
 projects:
   Commando:
-    path: ""
     model: virion
     type: library
+    libs:
+      - src: Muqsit/SimplePacketHandler/SimplePacketHandler
+        version: ^0.0.1
 ...
