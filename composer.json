@@ -1,0 +1,9 @@
+{
+    "name": "cortexpe/commando",
+    "description": "A Command Framework virion for PocketMine-MP ",
+    "type": "library",
+    "license": "LGPL-3.0-only",
+    "autoload": {
+        "psr-4": {"CortexPE\\Commando\\": ["src\\CortexPE\\Commando\\"]}
+    }
+}
