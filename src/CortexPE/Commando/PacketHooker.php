@@ -90,7 +90,7 @@ class PacketHooker implements Listener {
 	 *
 	 * @return CommandParameter[][]
 	 */
-	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
+	public static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
 
 		foreach($command->getSubCommands() as $label => $subCommand) {
