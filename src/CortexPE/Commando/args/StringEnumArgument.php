@@ -39,6 +39,7 @@ use function preg_match;
 use function strtolower;
 
 abstract class StringEnumArgument extends BaseArgument {
+
 	protected const VALUES = [];
 
 	public function __construct(string $name, bool $optional = false) {
@@ -59,9 +60,7 @@ abstract class StringEnumArgument extends BaseArgument {
 		);
 	}
 
-	public function getEnumName(): string {
-		return "enum#" . spl_object_id($this->parameterData->enum);
-	}
+	public abstract function getEnumName(): string;
 
 	public function getValue(string $string) {
 		return static::VALUES[strtolower($string)];
