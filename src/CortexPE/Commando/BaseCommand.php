@@ -177,7 +177,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	public function sendError(int $errorCode, array $args = []): void {
 		$str = $this->errorMessages[$errorCode];
 		foreach($args as $item => $value) {
-			$str = str_replace("{{$item}}", $value, $str);
+			$str = str_replace("{{$item}}", (string)$value, $str);
 		}
 		$this->currentSender->sendMessage($str);
 	}
