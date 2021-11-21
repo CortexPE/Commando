@@ -2,6 +2,7 @@
 branches:
 - master
 - PM4
+- phpstan-fix
 projects:
   Commando:
     model: virion
