@@ -33,13 +33,14 @@ namespace CortexPE\Commando;
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
-use pocketmine\command\CommandMap;
+use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\command\CommandSender;
+use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
-use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
-use pocketmine\network\mcpe\protocol\types\CommandEnum;
-use pocketmine\network\mcpe\protocol\types\CommandParameter;
+use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
+use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use function array_unshift;
@@ -48,12 +49,9 @@ use function count;
 class PacketHooker implements Listener {
 	/** @var bool */
 	private static $isRegistered = false;
-	/** @var CommandMap */
-	protected $map;
 
-	public function __construct() {
-		$this->map = Server::getInstance()->getCommandMap();
-	}
+	/** @var bool */
+	private static $isIntercepting = false;
 
 	public static function isRegistered(): bool {
 		return self::$isRegistered;
@@ -63,21 +61,12 @@ class PacketHooker implements Listener {
 		if(self::$isRegistered) {
 			throw new HookAlreadyRegistered("Event listener is already registered by another plugin.");
 		}
-		$registrant->getServer()->getPluginManager()->registerEvents(new PacketHooker(), $registrant);
-	}
-
-	/**
-	 * @param DataPacketSendEvent $ev
-	 *
-	 * @priority        LOWEST
-	 * @ignoreCancelled true
-	 */
-	public function onPacketSend(DataPacketSendEvent $ev): void {
-		$pk = $ev->getPacket();
-		if($pk instanceof AvailableCommandsPacket) {
-			$p = $ev->getPlayer();
+		$interceptor = SimplePacketHandler::createInterceptor($registrant, EventPriority::HIGHEST, false);
+		$interceptor->interceptOutgoing(function(AvailableCommandsPacket $pk, NetworkSession $target) : bool{
+			if(self::$isIntercepting)return true;
+			$p = $target->getPlayer();
 			foreach($pk->commandData as $commandName => $commandData) {
-				$cmd = $this->map->getCommand($commandName);
+				$cmd = Server::getInstance()->getCommandMap()->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
 					foreach($cmd->getConstraints() as $constraint){
 						if(!$constraint->isVisibleTo($p)){
@@ -88,7 +77,11 @@ class PacketHooker implements Listener {
 				}
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
-		}
+			self::$isIntercepting = true;
+			$target->sendDataPacket($pk);
+			self::$isIntercepting = false;
+			return false;
+		});
 	}
 
 	/**
@@ -97,7 +90,7 @@ class PacketHooker implements Listener {
 	 *
 	 * @return CommandParameter[][]
 	 */
-	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
+	public static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
 
 		foreach($command->getSubCommands() as $label => $subCommand) {
@@ -113,9 +106,7 @@ class PacketHooker implements Listener {
 			$scParam->paramName = $label;
 			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_FLAG_ENUM;
 			$scParam->isOptional = false;
-			$scParam->enum = new CommandEnum();
-			$scParam->enum->enumName = $label;
-			$scParam->enum->enumValues = [$label];
+			$scParam->enum = new CommandEnum($label, [$label]);
 
 			$overloadList = self::generateOverloads($cs, $subCommand);
 			if(!empty($overloadList)){

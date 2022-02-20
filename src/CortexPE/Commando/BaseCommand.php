@@ -29,15 +29,14 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
-
 use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\exception\InvalidErrorCode;
 use CortexPE\Commando\traits\ArgumentableTrait;
 use CortexPE\Commando\traits\IArgumentable;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\command\PluginIdentifiableCommand;
-use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginBase;
+use pocketmine\plugin\PluginOwned;
 use pocketmine\utils\TextFormat;
 use function array_shift;
 use function array_unique;
@@ -46,7 +45,7 @@ use function count;
 use function dechex;
 use function str_replace;
 
-abstract class BaseCommand extends Command implements IArgumentable, IRunnable, PluginIdentifiableCommand {
+abstract class BaseCommand extends Command implements IArgumentable, IRunnable, PluginOwned {
 	use ArgumentableTrait;
 
 	public const ERR_INVALID_ARG_VALUE = 0x01;
@@ -73,11 +72,11 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	/** @var BaseConstraint[] */
 	private $constraints = [];
 
-	/** @var Plugin */
+	/** @var PluginBase */
 	protected $plugin;
 
 	public function __construct(
-		Plugin $plugin,
+		PluginBase $plugin,
 		string $name,
 		string $description = "",
 		array $aliases = []
@@ -90,7 +89,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 		$this->usageMessage = $this->generateUsageMessage();
 	}
 
-	public function getPlugin(): Plugin {
+	public function getOwningPlugin(): PluginBase {
 		return $this->plugin;
 	}
 
@@ -151,7 +150,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	}
 
 	public function sendError(int $errorCode, array $args = []): void {
-		$str = $this->errorMessages[$errorCode];
+		$str = (string)$this->errorMessages[$errorCode];
 		foreach($args as $item => $value) {
 			$str = str_replace("{{$item}}", (string)$value, $str);
 		}

@@ -4,7 +4,9 @@ branches:
 - master
 projects:
   Commando:
-    path: ""
     model: virion
     type: library
+    libs:
+      - src: Muqsit/SimplePacketHandler/SimplePacketHandler
+        version: ^0.0.1
 ...

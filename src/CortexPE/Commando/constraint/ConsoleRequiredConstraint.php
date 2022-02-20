@@ -31,7 +31,7 @@ namespace CortexPE\Commando\constraint;
 
 
 use pocketmine\command\CommandSender;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 
 class ConsoleRequiredConstraint extends BaseConstraint {
