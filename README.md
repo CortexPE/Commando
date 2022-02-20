@@ -5,7 +5,7 @@ A PocketMine-MP Virion for easier implementation of dynamic commands, including 
 A detailed instruction on how to use this can be found [here](https://github.com/CortexPE/Commando/blob/master/README.md).
 
 # Link:
-https://poggit.pmmp.io/ci/ParoxityTeam/Commando
+https://poggit.pmmp.io/ci/Paroxity/Commando
 
 -----
 **This framework was made with :heart: by CortexPE, the fork however is currently being maintained by ParoxityTeam. Enjoy!~ :3**
