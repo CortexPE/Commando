@@ -29,14 +29,14 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
-use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginBase;
 use function trim;
 
 abstract class BaseSubCommand extends BaseCommand{
 	/** @var BaseCommand */
 	protected $parent;
 
-	public function __construct(Plugin $plugin, string $name, string $description = "", array $aliases = []){
+	public function __construct(PluginBase $plugin, string $name, string $description = "", array $aliases = []){
 		parent::__construct($plugin, $name, $description, $aliases);
 
 		$this->usageMessage = "";
