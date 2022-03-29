@@ -78,7 +78,7 @@ class Vector3Argument extends BaseArgument {
 				$offset = substr($coord, 1);
 
 				// replace base coordinate with actual entity coordinates
-                $position = $sender->getPosition();
+				$position = $sender->getPosition();
 				switch($k){
 					case 0:
 						$coord = $position->x;
