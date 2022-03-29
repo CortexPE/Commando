@@ -31,6 +31,7 @@ namespace CortexPE\Commando\args;
 
 
 use pocketmine\command\CommandSender;
+use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use function count;
@@ -72,20 +73,21 @@ class Vector3Argument extends BaseArgument {
 		foreach($coords as $k => $coord){
 			$offset = 0;
 			// if it's locatable and starts with ~- or ~+
-			if($sender instanceof Vector3 && preg_match("/^(?:~-|~\+)|~/", $coord)){
+			if($sender instanceof Entity && preg_match("/^(?:~-|~\+)|~/", $coord)){
 				// this will work with -n, +n and "" due to typecast later
 				$offset = substr($coord, 1);
 
 				// replace base coordinate with actual entity coordinates
+                $position = $sender->getPosition();
 				switch($k){
 					case 0:
-						$coord = $sender->x;
+						$coord = $position->x;
 						break;
 					case 1:
-						$coord = $sender->y;
+						$coord = $position->y;
 						break;
 					case 2:
-						$coord = $sender->z;
+						$coord = $position->z;
 						break;
 				}
 			}
