@@ -85,6 +85,8 @@ class PacketHooker implements Listener {
 			self::$isIntercepting = false;
 			return false;
 		});
+		
+		self::$isRegistered = true;
 	}
 
 	/**
