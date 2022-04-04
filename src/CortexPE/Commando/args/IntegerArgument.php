@@ -47,7 +47,7 @@ class IntegerArgument extends BaseArgument {
 		return (bool)preg_match("/^-?(?:\d+)$/", $testString);
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
-		return (int)$argument;
+	public function parse(string $argument, CommandSender $sender) : int{
+		return (int) $argument;
 	}
 }

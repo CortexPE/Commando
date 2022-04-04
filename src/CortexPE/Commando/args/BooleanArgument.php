@@ -42,7 +42,7 @@ class BooleanArgument extends StringEnumArgument {
 		return "bool";
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
+	public function parse(string $argument, CommandSender $sender) : mixed{
 		return $this->getValue($argument);
 	}
 }

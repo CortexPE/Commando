@@ -36,7 +36,6 @@ use function array_keys;
 use function array_map;
 use function implode;
 use function preg_match;
-use function spl_object_hash;
 use function strtolower;
 
 abstract class StringEnumArgument extends BaseArgument {

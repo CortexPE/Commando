@@ -40,21 +40,21 @@ use function explode;
 abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	use ArgumentableTrait;
 	/** @var string */
-	private $name;
+	private string $name;
 	/** @var string[] */
-	private $aliases = [];
+	private array $aliases;
 	/** @var string */
-	private $description = "";
+	private string $description;
 	/** @var string */
-	protected $usageMessage;
+	protected string $usageMessage;
 	/** @var string|null */
-	private $permission = null;
+	private ?string $permission = null;
 	/** @var CommandSender */
-	protected $currentSender;
+	protected CommandSender $currentSender;
 	/** @var BaseCommand */
-	protected $parent;
+	protected BaseCommand $parent;
 	/** @var BaseConstraint[] */
-	private $constraints = [];
+	private array $constraints = [];
 
 	public function __construct(string $name, string $description = "", array $aliases = []) {
 		$this->name = $name;
@@ -146,7 +146,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	}
 
 	public function sendUsage():void {
-		$this->currentSender->sendMessage("/{$this->parent->getName()} {$this->usageMessage}");
+		$this->currentSender->sendMessage("/{$this->parent->getName()} $this->usageMessage");
 	}
 
     public function addConstraint(BaseConstraint $constraint) : void {

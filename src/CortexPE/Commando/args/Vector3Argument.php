@@ -67,7 +67,7 @@ class Vector3Argument extends BaseArgument {
 		return (bool)preg_match("/^(?:" . ($locatable ? "(?:~-|~\+)?" : "") . "-?(?:\d+|\d*\.\d+))" . ($locatable ? "|~" : "") . "$/", $coordinate);
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
+	public function parse(string $argument, CommandSender $sender) : Vector3{
 		$coords = explode(" ", $argument);
 		$vals = [];
 		foreach($coords as $k => $coord){
@@ -79,17 +79,11 @@ class Vector3Argument extends BaseArgument {
 
 				// replace base coordinate with actual entity coordinates
 				$position = $sender->getPosition();
-				switch($k){
-					case 0:
-						$coord = $position->x;
-						break;
-					case 1:
-						$coord = $position->y;
-						break;
-					case 2:
-						$coord = $position->z;
-						break;
-				}
+				$coord = match ($k) {
+					0 => $position->x,
+					1 => $position->y,
+					2 => $position->z,
+				};
 			}
 			$vals[] = (float)$coord + (float)$offset;
 		}

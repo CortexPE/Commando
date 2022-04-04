@@ -47,7 +47,7 @@ class FloatArgument extends BaseArgument {
 		return (bool)preg_match("/^-?(?:\d+|\d*\.\d+)$/", $testString);
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
-		return (float)$argument;
+	public function parse(string $argument, CommandSender $sender) : float{
+		return (float) $argument;
 	}
 }

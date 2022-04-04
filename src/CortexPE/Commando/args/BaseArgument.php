@@ -36,11 +36,11 @@ use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 
 abstract class BaseArgument {
 	/** @var string */
-	protected $name;
+	protected string $name;
 	/** @var bool */
-	protected $optional = false;
+	protected bool $optional = false;
 	/** @var CommandParameter */
-	protected $parameterData;
+	protected CommandParameter $parameterData;
 
 	public function __construct(string $name, bool $optional = false) {
 		$this->name = $name;
@@ -69,7 +69,7 @@ abstract class BaseArgument {
 	 *
 	 * @return mixed
 	 */
-	abstract public function parse(string $argument, CommandSender $sender);
+	abstract public function parse(string $argument, CommandSender $sender) : mixed;
 
 	/**
 	 * @return string

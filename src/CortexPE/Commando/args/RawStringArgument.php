@@ -45,7 +45,7 @@ class RawStringArgument extends BaseArgument {
 		return true;
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
+	public function parse(string $argument, CommandSender $sender) : string{
 		return $argument;
 	}
 }

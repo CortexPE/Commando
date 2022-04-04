@@ -35,7 +35,7 @@ use pocketmine\command\CommandSender;
 
 abstract class BaseConstraint {
     /** @var IRunnable */
-    protected $context;
+    protected IRunnable $context;
 
     /**
      * BaseConstraint constructor.
