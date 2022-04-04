@@ -10,6 +10,8 @@ Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/
 
 This virion is purely object oriented. So, to use it you'll have to extend the `BaseCommand` object, import the `PacketHooker` object and the optional objects for subcommands and arguments (whenever necessary).
 
+For PocketMine-MP API 4, you will need to include [Muqsit/SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler) in your dependencies.
+
 # Why is this necessary?
 The virion provides an easy way to verify user input, convert user input, and for making sure that our arguments are the type that we expect it to.
 

@@ -33,13 +33,16 @@ namespace CortexPE\Commando;
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
+use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\command\CommandMap;
 use pocketmine\command\CommandSender;
+use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
-use pocketmine\network\mcpe\protocol\types\CommandEnum;
-use pocketmine\network\mcpe\protocol\types\CommandParameter;
+use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
+use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use function array_unique;
@@ -49,12 +52,8 @@ use function array_values;
 class PacketHooker implements Listener {
 	/** @var bool */
 	private static $isRegistered = false;
-	/** @var CommandMap */
-	protected $map;
-
-	public function __construct() {
-		$this->map = Server::getInstance()->getCommandMap();
-	}
+	/** @var bool */
+	private static $isIntercepting = false;
 
 	public static function isRegistered(): bool {
 		return self::$isRegistered;
@@ -64,21 +63,13 @@ class PacketHooker implements Listener {
 		if(self::$isRegistered) {
 			throw new HookAlreadyRegistered("Event listener is already registered by another plugin.");
 		}
-		$registrant->getServer()->getPluginManager()->registerEvents(new PacketHooker(), $registrant);
-	}
 
-	/**
-	 * @param DataPacketSendEvent $ev
-	 *
-	 * @priority        LOWEST
-	 * @ignoreCancelled true
-	 */
-	public function onPacketSend(DataPacketSendEvent $ev): void {
-		$pk = $ev->getPacket();
-		if($pk instanceof AvailableCommandsPacket) {
-			$p = $ev->getPlayer();
+		$interceptor = SimplePacketHandler::createInterceptor($registrant, EventPriority::NORMAL, false);
+		$interceptor->interceptOutgoing(function(AvailableCommandsPacket $pk, NetworkSession $target) : bool{
+			if(self::$isIntercepting)return true;
+			$p = $target->getPlayer();
 			foreach($pk->commandData as $commandName => $commandData) {
-				$cmd = $this->map->getCommand($commandName);
+				$cmd = Server::getInstance()->getCommandMap()->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
 					foreach($cmd->getConstraints() as $constraint){
 						if(!$constraint->isVisibleTo($p)){
@@ -89,7 +80,13 @@ class PacketHooker implements Listener {
 				}
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
-		}
+			self::$isIntercepting = true;
+			$target->sendDataPacket($pk);
+			self::$isIntercepting = false;
+			return false;
+		});
+		
+		self::$isRegistered = true;
 	}
 
 	/**
@@ -100,9 +97,6 @@ class PacketHooker implements Listener {
 	 */
 	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
-
-		$scEnum = new CommandEnum();
-		$scEnum->enumName = $command->getName() . "SubCommands";
 
 		foreach($command->getSubCommands() as $label => $subCommand) {
 			if(!$subCommand->testPermissionSilent($cs) || $subCommand->getName() !== $label){ // hide aliases
@@ -117,14 +111,7 @@ class PacketHooker implements Listener {
 			$scParam->paramName = $label;
 			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_FLAG_ENUM;
 			$scParam->isOptional = false;
-			$scParam->enum = new CommandEnum();
-			$scParam->enum->enumName = $label;
-			$scParam->enum->enumValues = [$label];
-
-			// it looks uglier imho
-			//$scParam->enum = $scEnum;
-
-			$scEnum->enumValues[] = $label;
+			$scParam->enum = new CommandEnum($label, [$label]);
 
 			$overloadList = self::generateOverloadList($subCommand);
 			if(!empty($overloadList)){
@@ -164,7 +151,10 @@ class PacketHooker implements Listener {
 				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
 				if(isset($param->enum) && $param->enum instanceof CommandEnum){
-					$param->enum->enumName = "enum#" . spl_object_id($param->enum);
+					$refClass = new \ReflectionClass(CommandEnum::class);
+					$refProp = $refClass->getProperty("enumName");
+					$refProp->setAccessible(true);
+					$refProp->setValue($param->enum, "enum#" . spl_object_id($param->enum));
 				}
 			}
 			$combinations[] = $set;
