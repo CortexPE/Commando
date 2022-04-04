@@ -1,8 +1,6 @@
 --- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/CortexPE/Commando
 branches:
 - master
-- PM4
-- phpstan-fix
 projects:
   Commando:
     model: virion
@@ -11,5 +9,5 @@ projects:
       phpstan: false
     libs:
       - src: Muqsit/SimplePacketHandler/SimplePacketHandler
-        version: ^0.0.1
+        version: ^0.1.0
 ...
