@@ -37,6 +37,7 @@ use CortexPE\Commando\traits\IArgumentable;
 use InvalidArgumentException;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\lang\Translatable;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginOwned;
 use pocketmine\utils\TextFormat;
@@ -79,7 +80,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	public function __construct(
 		Plugin $plugin,
 		string $name,
-		string $description = "",
+		Translatable|string $description = "",
 		array $aliases = []
 	) {
 		$this->plugin = $plugin;
