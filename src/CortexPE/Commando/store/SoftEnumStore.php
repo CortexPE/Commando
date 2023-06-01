@@ -5,6 +5,7 @@ namespace CortexPE\Commando\store;
 
 
 use CortexPE\Commando\exception\CommandoException;
+use pocketmine\network\mcpe\NetworkBroadcastUtils;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
 use pocketmine\network\mcpe\protocol\UpdateSoftEnumPacket;
@@ -55,6 +56,7 @@ class SoftEnumStore {
 	}
 
 	private static function broadcastPacket(ClientboundPacket $pk):void {
-		($sv = Server::getInstance())->broadcastPackets($sv->getOnlinePlayers(), [$pk]);
+		$players = Server::getInstance()->getOnlinePlayers();
+		NetworkBroadcastUtils::broadcastPackets($players, [$pk]);
 	}
 }
