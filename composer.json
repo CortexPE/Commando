@@ -4,6 +4,6 @@
     "type": "library",
     "license": "LGPL-3.0-only",
     "autoload": {
-        "psr-4": {"CortexPE\\Commando\\": ["src\\CortexPE\\Commando\\"]}
+        "psr-4": {"CortexPE\\Commando\\": ["src/CortexPE/Commando/"]}
     }
 }
