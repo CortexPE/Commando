@@ -8,5 +8,5 @@ projects:
     type: library
     libs:
       - src: Muqsit/SimplePacketHandler/SimplePacketHandler
-        version: ^0.0.1
+        version: ^0.1.3
 ...
