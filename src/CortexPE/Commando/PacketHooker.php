@@ -40,10 +40,10 @@ use pocketmine\event\Listener;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
+use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
-use function array_unshift;
 use function count;
 
 class PacketHooker implements Listener {
@@ -88,7 +88,7 @@ class PacketHooker implements Listener {
 	 * @param CommandSender $cs
 	 * @param BaseCommand $command
 	 *
-	 * @return CommandParameter[][]
+	 * @return CommandOverload[]
 	 */
 	public static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
@@ -111,11 +111,10 @@ class PacketHooker implements Listener {
 			$overloadList = self::generateOverloads($cs, $subCommand);
 			if(!empty($overloadList)){
 				foreach($overloadList as $overload) {
-					array_unshift($overload, $scParam);
-					$overloads[] = $overload;
+					$overloads[] = new CommandOverload(false, [$scParam, ...$overload->getParameters()]);
 				}
 			} else {
-				$overloads[] = [$scParam];
+				$overloads[] = new CommandOverload(false, [$scParam]);
 			}
 		}
 
@@ -129,7 +128,7 @@ class PacketHooker implements Listener {
 	/**
 	 * @param IArgumentable $argumentable
 	 *
-	 * @return CommandParameter[][]
+	 * @return CommandOverload[]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
 		$input = $argumentable->getArgumentList();
@@ -145,7 +144,7 @@ class PacketHooker implements Listener {
             foreach($indexes as $k => $index){
                 $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
             }
-            $combinations[] = $set;
+            $combinations[] =  new CommandOverload(false, $set);
 
             foreach($indexes as $k => $v){
                 $indexes[$k]++;
