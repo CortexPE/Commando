@@ -29,7 +29,6 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
-
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
@@ -45,15 +44,12 @@ use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use ReflectionClass;
-use function array_unshift;
 use function count;
 
 class PacketHooker implements Listener {
-	/** @var bool */
-	private static $isRegistered = false;
 
-	/** @var bool */
-	private static $isIntercepting = false;
+	private static bool $isRegistered = false;
+	private static bool $isIntercepting = false;
 
 	public static function isRegistered(): bool {
 		return self::$isRegistered;
@@ -84,7 +80,9 @@ class PacketHooker implements Listener {
 			self::$isIntercepting = false;
 			return false;
 		});
-	}
+
+        self::$isRegistered = true;
+    }
 
 	/**
 	 * @param CommandSender $cs

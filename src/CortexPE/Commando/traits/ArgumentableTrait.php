@@ -44,16 +44,16 @@ use function rtrim;
 use function trim;
 use function usort;
 
-trait ArgumentableTrait {
+trait ArgumentableTrait{
 	/** @var BaseArgument[][] */
-	private $argumentList = []; // [argumentPosition => [...possible BaseArgument(s)]]
+	private array $argumentList = []; // [argumentPosition => [...possible BaseArgument(s)]]
 	/** @var bool[] */
-	private $requiredArgumentCount = [];
+	private array $requiredArgumentCount = [];
 
 	/**
 	 * This is where all the arguments, permissions, sub-commands, etc would be registered
 	 */
-	abstract protected function prepare(): void;
+	abstract protected function prepare() : void;
 
 	/**
 	 * @param int          $position
@@ -192,17 +192,17 @@ trait ArgumentableTrait {
 		$name = $parent . (empty($parent) ? "" : " ") . $this->getName();
 		$msg = TextFormat::RED .  "/" . $name;
 		$args = [];
-		foreach($this->argumentList as $pos => $arguments) {
+		foreach($this->argumentList as $arguments){
 			$hasOptional = false;
 			$names = [];
-			foreach($arguments as $k => $argument) {
+			foreach($arguments as $argument){
 				$names[] = $argument->getName() . ":" . $argument->getTypeName();
-				if($argument->isOptional()) {
+				if($argument->isOptional()){
 					$hasOptional = true;
 				}
 			}
 			$names = implode("|", $names);
-			if($hasOptional) {
+			if($hasOptional){
 				$args[] = "[" . $names . "]";
 			} else {
 				$args[] = "<" . $names . ">";

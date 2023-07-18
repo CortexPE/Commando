@@ -39,8 +39,7 @@ class BlockPositionArgument extends Vector3Argument {
 		return (bool)preg_match("/^(?:" . ($locatable ? "(?:~-|~\+)?" : "") . "-?\d+)" . ($locatable ? "|~" : "") . "$/", $coordinate);
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
-		/** @var Vector3 $v */
+	public function parse(string $argument, CommandSender $sender) : Vector3{
 		$v = parent::parse($argument, $sender);
 
 		return $v->floor();

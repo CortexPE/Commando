@@ -2,7 +2,7 @@
 <br />
 
 A PocketMine-MP Virion for easier implementation of dynamic commands, including support for Minecraft: Bedrock Edition argument listing aimed for both the end users and the plugin developers. <br />
-A detailed instruction on how to use this can be found [here](https://github.com/CortexPE/Commando/blob/master/README.md).
+Detailed instruction on how to use this can be found [here](https://github.com/CortexPE/Commando/blob/master/README.md).
 
 # Link:
 https://poggit.pmmp.io/ci/Paroxity/Commando

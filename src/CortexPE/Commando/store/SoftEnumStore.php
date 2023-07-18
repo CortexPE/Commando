@@ -13,7 +13,7 @@ use pocketmine\Server;
 
 class SoftEnumStore {
 	/** @var CommandEnum[] */
-	private static $enums = [];
+	private static array $enums = [];
 
 	public static function getEnumByName(string $name):?CommandEnum {
 		return static::$enums[$name] ?? null;

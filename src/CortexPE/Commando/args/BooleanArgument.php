@@ -33,7 +33,6 @@ namespace CortexPE\Commando\args;
 use pocketmine\command\CommandSender;
 
 class BooleanArgument extends StringEnumArgument {
-
 	protected const VALUES = [
 		"true" => true,
 		"false" => false,
@@ -47,7 +46,7 @@ class BooleanArgument extends StringEnumArgument {
 		return "bool";
 	}
 
-	public function parse(string $argument, CommandSender $sender) {
+	public function parse(string $argument, CommandSender $sender) : mixed{
 		return $this->getValue($argument);
 	}
 }
