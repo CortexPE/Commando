@@ -44,6 +44,8 @@ use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
+use ReflectionClass;
+use function array_unshift;
 use function count;
 
 class PacketHooker implements Listener {
@@ -142,7 +144,14 @@ class PacketHooker implements Listener {
             /** @var CommandParameter[] $set */
             $set = [];
             foreach($indexes as $k => $index){
-                $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
+               	$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
+		    
+                if (isset($param->enum) && $param->enum instanceof CommandEnum) {
+                    $refClass = new ReflectionClass(CommandEnum::class);
+                    $refProp = $refClass->getProperty("enumName");
+                    $refProp->setAccessible(true);
+                    $refProp->setValue($param->enum, "enum#" . spl_object_id($param->enum));
+                }
             }
             $combinations[] =  new CommandOverload(false, $set);
 
