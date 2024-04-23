@@ -24,7 +24,7 @@ final class ItemArgument extends StringEnumArgument {
 		return $this->getValue($argument);
 	}
 
-	public function getValue(string $string) : ?Rank {
+	public function getValue(string $string) : ?Item {
 		return StringToItemParser::getInstance()->parse($string);
 	}
 
