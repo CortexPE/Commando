@@ -20,7 +20,7 @@ final class ItemArgument extends StringEnumArgument {
 		return $this->getValue($testString) instanceof Item;
 	}
 
-	public function parse(string $argument, CommandSender $sender) : ?Rank {
+	public function parse(string $argument, CommandSender $sender) : ?Item {
 		return $this->getValue($argument);
 	}
 
