@@ -1,5 +1,5 @@
 {
-    "name": "cortexpe/commando",
+    "name": "nozell/commando",
     "description": "A Command Framework virion for PocketMine-MP ",
     "type": "library",
     "license": "LGPL-3.0-only",
