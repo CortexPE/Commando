@@ -1,14 +1,16 @@
 {
-    "name": "nozell/commando",
-    "description": "A Command Framework virion for PocketMine-MP ",
-    "type": "library",
-    "license": "LGPL-3.0-only",
-    "autoload": {
+  "name": "nozell/commando",
+  "type": "library",
+  "license": "GPL-3.0-only",
+  "require": {
+    "pocketmine/pocketmine-mp": "^5.0"
+  },
+  "autoload": {
     "psr-0": {
       "CortexPE\\Commando\\": "src/"
     }
   },
-     "extra": {
+  "extra": {
     "virion": {
       "spec": "3.0",
       "namespace-root": "CortexPE\\Commando"
