@@ -4,15 +4,14 @@
     "type": "library",
     "license": "LGPL-3.0-only",
     "autoload": {
-        "psr-4": {"CortexPE\\Commando\\": ["src\\CortexPE\\Commando\\"]}
-    },
-    "require": {
-        "pocketmine/pocketmine-mp": "^4.0.0"
-    },
-    "extra": {
-        "virion": {
-            "spec": "3.0",
-            "namespace-root": "CortexPE\\Commando"
-        }
+    "psr-0": {
+      "CortexPE\\Commando\\": "src/"
     }
+  },
+     "extra": {
+    "virion": {
+      "spec": "3.0",
+      "namespace-root": "CortexPE\\Commando"
+    }
+  }
 }

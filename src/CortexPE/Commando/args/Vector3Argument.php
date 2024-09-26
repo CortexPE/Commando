@@ -64,7 +64,7 @@ class Vector3Argument extends BaseArgument {
 	}
 
 	public function isValidCoordinate(string $coordinate, bool $locatable): bool {
-		return (bool)preg_match("/^(?:" . ($locatable ? "(?:~-|~\+)?" : "") . "-?(?:\d+|\d*\.\d+))" . ($locatable ? "|~" : "") . "$/", $coordinate);
+		return (bool)preg_match("/^(?:" . ($locatable ? "(\\?:~-|~\+)?" : "") . "-?(?:\d+|\d*\.\d+))" . ($locatable ? "|~" : "") . "$/", $coordinate);
 	}
 
 	public function parse(string $argument, CommandSender $sender) : Vector3{

@@ -29,7 +29,6 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
-
 use CortexPE\Commando\exception\HookAlreadyRegistered;
 use CortexPE\Commando\store\SoftEnumStore;
 use CortexPE\Commando\traits\IArgumentable;
@@ -46,10 +45,12 @@ use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use ReflectionClass;
 use function array_unshift;
+use function count;
 
 class PacketHooker implements Listener {
 	/** @var bool */
 	private static bool $isRegistered = false;
+
 	/** @var bool */
 	private static bool $isIntercepting = false;
 
@@ -61,8 +62,7 @@ class PacketHooker implements Listener {
 		if(self::$isRegistered) {
 			throw new HookAlreadyRegistered("Event listener is already registered by another plugin.");
 		}
-
-		$interceptor = SimplePacketHandler::createInterceptor($registrant, EventPriority::NORMAL, false);
+		$interceptor = SimplePacketHandler::createInterceptor($registrant, EventPriority::HIGHEST, false);
 		$interceptor->interceptOutgoing(function(AvailableCommandsPacket $pk, NetworkSession $target) : bool{
 			if(self::$isIntercepting)return true;
 			$p = $target->getPlayer();
@@ -91,7 +91,7 @@ class PacketHooker implements Listener {
 	 * @param CommandSender $cs
 	 * @param BaseCommand $command
 	 *
-	 * @return CommandOverload[][]
+	 * @return CommandOverload[]
 	 */
 	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
@@ -111,7 +111,7 @@ class PacketHooker implements Listener {
 			$scParam->isOptional = false;
 			$scParam->enum = new CommandEnum($label, [$label]);
 
-			$overloadList = self::generateOverloadList($subCommand);
+			$overloadList = self::generateOverloads($cs, $subCommand);
 			if(!empty($overloadList)){
 				foreach($overloadList as $overload) {
 					$overloads[] = new CommandOverload(false, [$scParam, ...$overload->getParameters()]);
@@ -131,7 +131,7 @@ class PacketHooker implements Listener {
 	/**
 	 * @param IArgumentable $argumentable
 	 *
-	 * @return CommandOverload[][]
+	 * @return CommandOverload[]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
 		$input = $argumentable->getArgumentList();
@@ -145,16 +145,16 @@ class PacketHooker implements Listener {
 			/** @var CommandParameter[] $set */
 			$set = [];
 			foreach($indexes as $k => $index){
-				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
-
-				if(isset($param->enum) && $param->enum instanceof CommandEnum){
+			   	$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
+			
+				if (isset($param->enum) && $param->enum instanceof CommandEnum) {
 					$refClass = new ReflectionClass(CommandEnum::class);
 					$refProp = $refClass->getProperty("enumName");
 					$refProp->setAccessible(true);
 					$refProp->setValue($param->enum, "enum#" . spl_object_id($param->enum));
 				}
 			}
-			$combinations[] = new CommandOverload(false, $set);
+			$combinations[] =  new CommandOverload(false, $set);
 
 			foreach($indexes as $k => $v){
 				$indexes[$k]++;

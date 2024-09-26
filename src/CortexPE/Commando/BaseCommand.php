@@ -29,7 +29,6 @@ declare(strict_types=1);
 
 namespace CortexPE\Commando;
 
-
 use CortexPE\Commando\constraint\BaseConstraint;
 use CortexPE\Commando\exception\InvalidErrorCode;
 use CortexPE\Commando\traits\ArgumentableTrait;
@@ -46,7 +45,6 @@ use function array_unique;
 use function array_unshift;
 use function count;
 use function dechex;
-use function implode;
 use function str_replace;
 
 abstract class BaseCommand extends Command implements IArgumentable, IRunnable, PluginOwned {
@@ -56,13 +54,15 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	public const ERR_TOO_MANY_ARGUMENTS = 0x02;
 	public const ERR_INSUFFICIENT_ARGUMENTS = 0x03;
 	public const ERR_NO_ARGUMENTS = 0x04;
+	public const ERR_INVALID_ARGUMENTS = 0x05;
 
 	/** @var string[] */
-	protected array $errorMessages = [
-		self::ERR_INVALID_ARG_VALUE => TextFormat::RED . "Invalid value '{value}' for argument #{position}",
-		self::ERR_TOO_MANY_ARGUMENTS => TextFormat::RED . "Too many arguments given",
-		self::ERR_INSUFFICIENT_ARGUMENTS => TextFormat::RED . "Insufficient number of arguments given",
-		self::ERR_NO_ARGUMENTS => TextFormat::RED . "No arguments are required for this command",
+	protected $errorMessages = [
+		self::ERR_INVALID_ARG_VALUE => TextFormat::RED . "Invalid value '{value}' for argument #{position}. Expecting: {expected}.",
+		self::ERR_TOO_MANY_ARGUMENTS => TextFormat::RED . "Too many arguments given.",
+		self::ERR_INSUFFICIENT_ARGUMENTS => TextFormat::RED . "Insufficient number of arguments given.",
+		self::ERR_NO_ARGUMENTS => TextFormat::RED . "No arguments are required for this command.",
+		self::ERR_INVALID_ARGUMENTS => TextFormat::RED . "Invalid arguments supplied.",
 	];
 
 	/** @var CommandSender */
@@ -75,7 +75,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	private array $constraints = [];
 
 	/** @var Plugin */
-	private Plugin $plugin;
+	protected Plugin $plugin;
 
 	public function __construct(
 		Plugin $plugin,
@@ -88,12 +88,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 
 		$this->prepare();
 
-		$usages = ["/" . $this->generateUsageMessage()];
-		foreach($this->subCommands as $subCommand) {
-			$usages[] = $subCommand->getUsageMessage();
-		}
-		$usages = array_unique($usages);
-		$this->usageMessage = implode("\n - /" . $this->getName() . " ", $usages);
+		$this->usageMessage = $this->generateUsageMessage();
 	}
 
 	public function getOwningPlugin(): Plugin {
@@ -111,22 +106,8 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 		if(count($args) > 0){
 			if(isset($this->subCommands[($label = $args[0])])){
 				array_shift($args);
-				$cmd = $this->subCommands[$label];
-				$cmd->setCurrentSender($sender);
-				if(!$cmd->testPermissionSilent($sender)) {
-					$msg = $this->getPermissionMessage();
-					if($msg === null) {
-						$sender->sendMessage(
-							$sender->getServer()->getLanguage()->translateString(
-								TextFormat::RED . "%commands.generic.permission"
-							)
-						);
-					} elseif(empty($msg)) {
-						$sender->sendMessage(str_replace("<permission>", $cmd->getPermission(), $msg));
-					}
-
-					return;
-				}
+				$this->subCommands[$label]->execute($sender, $label, $args);
+				return;
 			}
 
 			$passArgs = $this->attemptArgumentParsing($cmd, $args);
@@ -164,23 +145,19 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 		return $dat["arguments"];
 	}
 
-	/**
-	 * @param CommandSender  $sender
-	 * @param string         $aliasUsed
-	 * @param array|array<string,mixed|array<mixed>> $args
-	 */
 	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
 
 	protected function sendUsage(): void {
-		$this->currentSender->sendMessage("Usage: " . $this->getUsage());
+		$this->currentSender->sendMessage(TextFormat::RED . "Usage: " . $this->getUsage());
 	}
 
 	public function sendError(int $errorCode, array $args = []): void {
-		$str = $this->errorMessages[$errorCode];
+		$str = (string)$this->errorMessages[$errorCode];
 		foreach($args as $item => $value) {
 			$str = str_replace('{' . $item . '}', (string) $value, $str);
 		}
 		$this->currentSender->sendMessage($str);
+		$this->sendUsage();
 	}
 
 	public function setErrorFormat(int $errorCode, string $format): void {
@@ -230,5 +207,9 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 
 	public function getUsageMessage(): string {
 		return $this->getUsage();
+	}
+
+	public function setCurrentSender(CommandSender $sender): void{
+		$this->currentSender = $sender;
 	}
 }

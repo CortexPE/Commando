@@ -5,6 +5,7 @@ namespace CortexPE\Commando\store;
 
 
 use CortexPE\Commando\exception\CommandoException;
+use pocketmine\network\mcpe\NetworkBroadcastUtils;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
 use pocketmine\network\mcpe\protocol\UpdateSoftEnumPacket;
@@ -34,7 +35,7 @@ class SoftEnumStore {
 		if(self::getEnumByName($enumName) === null){
 			throw new CommandoException("Unknown enum named " . $enumName);
 		}
-		$enum = self::$enums[$enumName] = new CommandEnum($enumName, $values);
+		self::$enums[$enumName] = $enum = new CommandEnum($enumName, $values);
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_SET);
 	}
 
@@ -55,6 +56,7 @@ class SoftEnumStore {
 	}
 
 	private static function broadcastPacket(ClientboundPacket $pk):void {
-		($sv = Server::getInstance())->broadcastPackets($sv->getOnlinePlayers(), [$pk]);
+		$sv = Server::getInstance();
+		NetworkBroadcastUtils::broadcastPackets($sv->getOnlinePlayers(), [$pk]);
 	}
 }

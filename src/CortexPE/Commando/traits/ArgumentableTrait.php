@@ -35,10 +35,13 @@ use CortexPE\Commando\args\TextArgument;
 use CortexPE\Commando\BaseCommand;
 use CortexPE\Commando\exception\ArgumentOrderException;
 use pocketmine\command\CommandSender;
+use pocketmine\utils\TextFormat;
 use function array_slice;
 use function count;
 use function implode;
 use function is_array;
+use function rtrim;
+use function trim;
 use function usort;
 
 trait ArgumentableTrait{
@@ -93,10 +96,11 @@ trait ArgumentableTrait{
 			];
 		}
 		$offset = 0;
+		$argOffset = 0;
 		if(count($rawArgs) > 0) {
 			foreach($this->argumentList as $pos => $possibleArguments) {
 				// try the one that spans more first... before the others
-				usort($possibleArguments, function (BaseArgument $a, BaseArgument $b): int {
+				usort($possibleArguments, function (BaseArgument $a): int {
 					if($a->getSpanLength() === PHP_INT_MAX) { // if it takes unlimited arguments, pull it down
 						return 1;
 					}
@@ -125,6 +129,7 @@ trait ArgumentableTrait{
 							$required--;
 						}
 						$offset += $len;
+						++$argOffset;
 						$parsed = true;
 						break;
 					}
@@ -133,11 +138,18 @@ trait ArgumentableTrait{
 					}
 				}
 				if(!$parsed && !($optional && empty($arg))) { // we tried every other possible argument type, none was satisfied
+					$expectedArgs = $this->argumentList[$argOffset];
+					$expected = "";
+					foreach($expectedArgs as $expectedArg){
+						$expected .=  $expectedArg->getTypeName() . "|";
+					}
+
 					$return["errors"][] = [
 						"code" => BaseCommand::ERR_INVALID_ARG_VALUE,
 						"data" => [
 							"value" => $rawArgs[$offset] ?? "",
-							"position" => $pos + 1
+							"position" => $pos + 1,
+							"expected" => rtrim($expected, "|")
 						]
 					];
 
@@ -158,11 +170,29 @@ trait ArgumentableTrait{
 			];
 		}
 
+		// up to my testing this occurs when BaseCommand::ERR_NO_ARGUMENTS and BaseCommand::ERR_TOO_MANY_ARGUMENTS are given as errors
+		// this only (as far as my testing) happens when command accepts arguments (e.g. a subcommand) but the user supplied invalid argument
+		// also the error code remains as shown due to the way they are passed
+		// have a better way? pr please :)
+		if(
+			count($return["errors"]) === 2 &&
+			$return["errors"][0]["code"] === BaseCommand::ERR_NO_ARGUMENTS &&
+			$return["errors"][1]["code"] === BaseCommand::ERR_TOO_MANY_ARGUMENTS
+		){
+			unset($return["errors"]);
+
+			$return["errors"][] = [
+				"code" => BaseCommand::ERR_INVALID_ARGUMENTS,
+				"data" => []
+			];
+		}
+
 		return $return;
 	}
 
-	public function generateUsageMessage(): string {
-		$msg = $this->getName() . " ";
+	public function generateUsageMessage(string $parent = ""): string {
+		$name = $parent . (empty($parent) ? "" : " ") . $this->getName();
+		$msg = TextFormat::RED .  "/" . $name;
 		$args = [];
 		foreach($this->argumentList as $arguments){
 			$hasOptional = false;
@@ -180,9 +210,14 @@ trait ArgumentableTrait{
 				$args[] = "<" . $names . ">";
 			}
 		}
-		$msg .= implode(" ", $args);
+		$msg .= ((empty($args)) ? "" : " ") .  implode(TextFormat::RED . " ", $args) . ": " . $this->getDescription();
+		foreach($this->subCommands as $label => $subCommand){
+			if($label === $subCommand->getName()){
+				$msg .= "\n - " . $subCommand->generateUsageMessage($name);
+			}
+		}
 
-		return $msg;
+		return trim($msg);
 	}
 
 	public function hasArguments(): bool {

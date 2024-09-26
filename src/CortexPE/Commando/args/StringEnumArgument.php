@@ -39,12 +39,13 @@ use function preg_match;
 use function strtolower;
 
 abstract class StringEnumArgument extends BaseArgument {
+
 	protected const VALUES = [];
 
 	public function __construct(string $name, bool $optional = false) {
 		parent::__construct($name, $optional);
 
-		$this->parameterData->enum = new CommandEnum("", $this->getEnumValues());
+		$this->parameterData->enum = new CommandEnum($this->getEnumName(), $this->getEnumValues());
 	}
 
 	public function getNetworkType(): int {
@@ -58,6 +59,8 @@ abstract class StringEnumArgument extends BaseArgument {
 			$testString
 		);
 	}
+
+	public abstract function getEnumName(): string;
 
 	public function getValue(string $string) {
 		return static::VALUES[strtolower($string)];
