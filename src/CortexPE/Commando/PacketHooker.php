@@ -27,13 +27,13 @@
  */
 declare(strict_types=1);
 
-namespace cooldogedev\BedrockEconomy\libs\_1bf65e59a1e61f74\CortexPE\Commando;
+namespace CortexPE\Commando;
 
 
-use cooldogedev\BedrockEconomy\libs\_1bf65e59a1e61f74\CortexPE\Commando\exception\HookAlreadyRegistered;
-use cooldogedev\BedrockEconomy\libs\_1bf65e59a1e61f74\CortexPE\Commando\store\SoftEnumStore;
-use cooldogedev\BedrockEconomy\libs\_1bf65e59a1e61f74\CortexPE\Commando\traits\IArgumentable;
-use cooldogedev\BedrockEconomy\libs\_1bf65e59a1e61f74\muqsit\simplepackethandler\SimplePacketHandler;
+use CortexPE\Commando\exception\HookAlreadyRegistered;
+use CortexPE\Commando\store\SoftEnumStore;
+use CortexPE\Commando\traits\IArgumentable;
+use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\command\CommandSender;
 use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
@@ -42,10 +42,10 @@ use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
-use pocketmine\network\mcpe\protocol\types\command\raw\CommandRawData;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use ReflectionClass;
+use function array_unshift;
 
 class PacketHooker implements Listener {
 	/** @var bool */
@@ -67,23 +67,14 @@ class PacketHooker implements Listener {
 			if(self::$isIntercepting)return true;
 			$p = $target->getPlayer();
 			foreach($pk->commandData as $commandName => $commandData) {
-				$cmd = Server::getInstance()->getCommandMap()->getCommand($commandData->getName());
+				$cmd = Server::getInstance()->getCommandMap()->getCommand($commandName);
 				if($cmd instanceof BaseCommand) {
 					foreach($cmd->getConstraints() as $constraint){
 						if(!$constraint->isVisibleTo($p)){
 							continue 2;
 						}
 					}
-					$rawdata = $pk->commandData[$commandName];
-					$pk->commandData[$commandName] = new CommandRawData(
-						$rawdata->getName(),
-						$rawdata->getDescription(),
-						$rawdata->getFlags(), 
-						$rawdata->getPermission(), 
-						$rawdata->getAliasEnumIndex(), 
-						$rawdata->getChainedSubCommandDataIndexes(), 
-						self::generateOverloads($p, $cmd)
-					);
+					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
 				}
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
@@ -140,7 +131,7 @@ class PacketHooker implements Listener {
 	/**
 	 * @param IArgumentable $argumentable
 	 *
-	 * @return CommandOverload[]
+	 * @return CommandOverload[][]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
 		$input = $argumentable->getArgumentList();
@@ -156,14 +147,14 @@ class PacketHooker implements Listener {
 			foreach($indexes as $k => $index){
 				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
-				if(isset($param->enum) && $param->enum instanceof CommandSoftEnum){
-					$refClass = new ReflectionClass(CommandSoftEnum::class);
+				if(isset($param->enum) && $param->enum instanceof CommandEnum){
+					$refClass = new ReflectionClass(CommandEnum::class);
 					$refProp = $refClass->getProperty("enumName");
 					$refProp->setAccessible(true);
 					$refProp->setValue($param->enum, "enum#" . spl_object_id($param->enum));
 				}
 			}
-			$combinations[] =  new CommandOverload(false, $set);
+			$combinations[] = new CommandOverload(false, $set);
 
 			foreach($indexes as $k => $v){
 				$indexes[$k]++;
@@ -179,3 +170,4 @@ class PacketHooker implements Listener {
 		return $combinations;
 	}
 }
+
