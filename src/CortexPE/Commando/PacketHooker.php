@@ -140,7 +140,7 @@ class PacketHooker implements Listener {
 	/**
 	 * @param IArgumentable $argumentable
 	 *
-	 * @return CommandOverload[]
+	 * @return CommandOverloadRawData[]
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
 		$input = $argumentable->getArgumentList();
@@ -179,4 +179,5 @@ class PacketHooker implements Listener {
 		return $combinations;
 	}
 }
+
 
