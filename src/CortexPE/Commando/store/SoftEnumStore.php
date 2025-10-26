@@ -6,7 +6,7 @@ namespace CortexPE\Commando\store;
 
 use CortexPE\Commando\exception\CommandoException;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
+use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\network\mcpe\protocol\UpdateSoftEnumPacket;
 use pocketmine\Server;
 
@@ -14,7 +14,7 @@ class SoftEnumStore {
 	/** @var CommandEnum[] */
 	private static array $enums = [];
 
-	public static function getEnumByName(string $name):?CommandEnum {
+	public static function getEnumByName(string $name):?CommandSoftEnum {
 		return static::$enums[$name] ?? null;
 	}
 
@@ -25,7 +25,7 @@ class SoftEnumStore {
 		return static::$enums;
 	}
 
-	public static function addEnum(CommandEnum $enum):void {
+	public static function addEnum(CommandSoftEnum $enum):void {
 		static::$enums[$enum->getName()] = $enum;
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_ADD);
 	}
@@ -34,7 +34,7 @@ class SoftEnumStore {
 		if(self::getEnumByName($enumName) === null){
 			throw new CommandoException("Unknown enum named " . $enumName);
 		}
-		$enum = self::$enums[$enumName] = new CommandEnum($enumName, $values);
+		$enum = self::$enums[$enumName] = new CommandSoftEnum($enumName, $values);
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_SET);
 	}
 
@@ -46,7 +46,7 @@ class SoftEnumStore {
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_REMOVE);
 	}
 
-	public static function broadcastSoftEnum(CommandEnum $enum, int $type):void {
+	public static function broadcastSoftEnum(CommandSoftEnum $enum, int $type):void {
 		$pk = new UpdateSoftEnumPacket();
 		$pk->enumName = $enum->getName();
 		$pk->values = $enum->getValues();
@@ -55,6 +55,7 @@ class SoftEnumStore {
 	}
 
 	private static function broadcastPacket(ClientboundPacket $pk):void {
-		($sv = Server::getInstance())->broadcastPackets($sv->getOnlinePlayers(), [$pk]);
+		$players = Server::getInstance()->getOnlinePlayers();
+		NetworkBroadcastUtils::broadcastPackets($players, [$pk]);
 	}
 }
