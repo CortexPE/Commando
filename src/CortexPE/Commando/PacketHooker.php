@@ -39,7 +39,7 @@ use pocketmine\event\EventPriority;
 use pocketmine\event\Listener;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
-use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
+use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
@@ -109,7 +109,7 @@ class PacketHooker implements Listener {
 			$scParam->paramName = $label;
 			$scParam->paramType = AvailableCommandsPacket::ARG_FLAG_VALID | AvailableCommandsPacket::ARG_FLAG_ENUM;
 			$scParam->isOptional = false;
-			$scParam->enum = new CommandEnum($label, [$label]);
+			$scParam->enum = new CommandSoftEnum($label, [$label]);
 
 			$overloadList = self::generateOverloadList($subCommand);
 			if(!empty($overloadList)){
@@ -170,3 +170,4 @@ class PacketHooker implements Listener {
 		return $combinations;
 	}
 }
+
