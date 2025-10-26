@@ -74,7 +74,16 @@ class PacketHooker implements Listener {
 							continue 2;
 						}
 					}
-					$pk->commandData[$commandName]->overloads = self::generateOverloads($p, $cmd);
+					$rawdata = $pk->commandData[$commandName];
+					$pk->commandData[$commandName] = new CommandRawData(
+						$rawdata->getName(),
+						$rawdata->getDescription(),
+						$rawdata->getFlags(), 
+						$rawdata->getPermission(), 
+						$rawdata->getAliasEnumIndex(), 
+						$rawdata->getChainedSubCommandDataIndexes(), 
+						self::generateOverloads($p, $cmd)
+					);
 				}
 			}
 			$pk->softEnums = SoftEnumStore::getEnums();
@@ -170,4 +179,5 @@ class PacketHooker implements Listener {
 		return $combinations;
 	}
 }
+
 
