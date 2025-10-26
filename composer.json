@@ -7,7 +7,7 @@
         "psr-4": {"CortexPE\\Commando\\": ["src\\CortexPE\\Commando\\"]}
     },
     "require": {
-        "pocketmine/pocketmine-mp": "^4.0.0"
+        "pocketmine/pocketmine-mp": "^5.36.0"
     },
     "extra": {
         "virion": {
