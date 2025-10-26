@@ -100,7 +100,7 @@ class PacketHooker implements Listener {
 	 * @param CommandSender $cs
 	 * @param BaseCommand $command
 	 *
-	 * @return CommandOverload[][]
+	 * @return CommandOverloadRawData[]
 	 */
 	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
@@ -123,10 +123,10 @@ class PacketHooker implements Listener {
 			$overloadList = self::generateOverloadList($subCommand);
 			if(!empty($overloadList)){
 				foreach($overloadList as $overload) {
-					$overloads[] = new CommandOverload(false, [$scParam, ...$overload->getParameters()]);
+					$overloads[] = new CommandOverloadRawData(false, [$scParam, ...$overload->getParameters()]);
 				}
 			} else {
-				$overloads[] = new CommandOverload(false, [$scParam]);
+				$overloads[] = new CommandOverloadRawData(false, [$scParam]);
 			}
 		}
 
@@ -156,14 +156,14 @@ class PacketHooker implements Listener {
 			foreach($indexes as $k => $index){
 				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
-				if(isset($param->enum) && $param->enum instanceof CommandSoftEnum){
+				if($param->enum instanceof CommandSoftEnum){
 					$refClass = new ReflectionClass(CommandSoftEnum::class);
 					$refProp = $refClass->getProperty("enumName");
 					$refProp->setAccessible(true);
 					$refProp->setValue($param->enum, "enum#" . spl_object_id($param->enum));
 				}
 			}
-			$combinations[] =  new CommandOverload(false, $set);
+			$combinations[] =  new CommandOverloadRawData(false, $set);
 
 			foreach($indexes as $k => $v){
 				$indexes[$k]++;
@@ -179,3 +179,4 @@ class PacketHooker implements Listener {
 		return $combinations;
 	}
 }
+
